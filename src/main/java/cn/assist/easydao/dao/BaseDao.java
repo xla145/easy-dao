@@ -36,13 +36,24 @@ import cn.assist.easydao.util.PojoHelper;
  * 4、支持嵌入其他框架
  * 
  * 
- * @version 1.0.0
+ * @version 1.8.0
  * @author caixb
  *
  */
-public class BaseDao extends DataSourceHolder implements IBaseDao {
-	protected final Log logger = LogFactory.getLog(BaseDao.class);
+public class BaseDao implements IBaseDao {
+	private Log logger = LogFactory.getLog(BaseDao.class);
+	private String dataSourceName;
+	
 	public static BaseDao dao = new BaseDao();
+	
+	public static BaseDao use(String dataSourceName){
+		return new BaseDao(dataSourceName);
+	}
+	
+	BaseDao(){}
+	BaseDao(String dataSourceName){
+		this.dataSourceName = dataSourceName;
+	}
 	
 	@Override
 	public int update(String sql){
@@ -194,7 +205,12 @@ public class BaseDao extends DataSourceHolder implements IBaseDao {
 		entitys.add(entity);
 		return insertMulti(entitys, true);
 	}
-
+	
+	@Override
+	public <T extends BasePojo> int insertReturnId(List<T> entitys){
+		return insertMulti(entitys, true);
+	}
+	
 	@Override
 	public int queryForInt(String sql) {
 		return queryForIntMulti(sql, null);
@@ -206,15 +222,15 @@ public class BaseDao extends DataSourceHolder implements IBaseDao {
 	}
 
 	private int queryForIntMulti(String sql, Object[] params) {
-		if(dev){
+		if(DataSourceHolder.dev){
 			logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
 		}
 				
 		ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql.toString());
 		if(params == null || params.length < 1){
-			return jdbcTemplate.queryForObject(creator.getSql(), Integer.class);
+			return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForObject(creator.getSql(), Integer.class);
 		}
-		return jdbcTemplate.queryForObject(creator.getSql(), Integer.class, params);
+		return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForObject(creator.getSql(), Integer.class, params);
 	}
 	
 	@Override
@@ -248,15 +264,15 @@ public class BaseDao extends DataSourceHolder implements IBaseDao {
 	}
 	
 	private List<Map<String, Object>> queryForListMapMulti(String sql, Object[] params) {
-		if(dev){
+		if(DataSourceHolder.dev){
 			logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
 		}
 		ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql.toString());
 		
 		if(params == null || params.length < 1){
-			return jdbcTemplate.queryForList(creator.getSql());
+			return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForList(creator.getSql());
 		}
-		return jdbcTemplate.queryForList(creator.getSql(), params);
+		return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForList(creator.getSql(), params);
 	}
 
 	
@@ -346,7 +362,7 @@ public class BaseDao extends DataSourceHolder implements IBaseDao {
 		if(sort != null){
 			sql += " order by " + sort.getSortSql();
 		}
-		if(dev){
+		if(DataSourceHolder.dev){
 			logger.info("sql:" + MessageFormat.format(sql.toString(), "\\?", params));
 		}
 		SpringResultHandler<T> srh = new SpringResultHandler<T>(entityClazz);
@@ -354,9 +370,9 @@ public class BaseDao extends DataSourceHolder implements IBaseDao {
 		ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql.toString());
 		
 		if(params == null || params.length < 1){
-			jdbcTemplate.query(creator.getSql(), srh);
+			DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), srh);
 		}else{
-			jdbcTemplate.query(creator.getSql(), srh, params);
+			DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), srh, params);
 		}
 		return srh.getDataList();
 	}
@@ -391,7 +407,7 @@ public class BaseDao extends DataSourceHolder implements IBaseDao {
 		}
 		sql += " limit " + ((pageNo - 1) * pageSize) + ", " + pageSize;
 		
-		if(dev){
+		if(DataSourceHolder.dev){
 			logger.info("sql:" + MessageFormat.format(sql, "\\?", paramArr));
 		}
 		SpringResultHandler<T> srh = new SpringResultHandler<T>(entityClazz);
@@ -399,9 +415,9 @@ public class BaseDao extends DataSourceHolder implements IBaseDao {
 		ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql.toString());
 		
 		if(params == null || params.size() < 1){
-			jdbcTemplate.query(creator.getSql(), srh);
+			DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), srh);
 		}else{
-			jdbcTemplate.query(creator.getSql(), srh, paramArr);
+			DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), srh, paramArr);
 		}
 		page.setPgaeData(srh.getDataList());
 		
@@ -410,17 +426,11 @@ public class BaseDao extends DataSourceHolder implements IBaseDao {
 
 	@Override
 	public int delete(String sql, Object... params) {
-		if(dev){
+		if(DataSourceHolder.dev){
 			logger.info("sql:" + sql);
 		}
-		return jdbcTemplate.update(sql, params);
+		return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).update(sql, params);
 	}
-	
-	
-	
-	
-	
-	
 	
 	
 	/**
@@ -576,14 +586,14 @@ public class BaseDao extends DataSourceHolder implements IBaseDao {
 			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" : missing \"where\" keywords for sql: ").append(sql).toString());
 		}
 		
-		if(dev){
+		if(DataSourceHolder.dev){
 			logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
 		}
 		ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql.toString());
 		if(params == null || params.length < 1){
-			return jdbcTemplate.update(sql);
+			return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).update(sql);
 		}
-		return jdbcTemplate.update(creator.getSql(), params);
+		return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).update(creator.getSql(), params);
 	}
 	
 	/**
@@ -595,7 +605,7 @@ public class BaseDao extends DataSourceHolder implements IBaseDao {
 	 * @return
 	 */
 	private int executeInsert(String sql, Object[] params, boolean isReturnId) {
-		if(dev){
+		if(DataSourceHolder.dev){
 			logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
 		}
 		if(isReturnId){
@@ -604,10 +614,10 @@ public class BaseDao extends DataSourceHolder implements IBaseDao {
 		
 		ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql.toString());
 		if(params == null || params.length < 1){
-			return jdbcTemplate.update(sql);
+			return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).update(sql);
 		}
 		
-		return jdbcTemplate.update(creator.getSql(), params);
+		return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).update(creator.getSql(), params);
 	}
 	
 	/**
@@ -624,10 +634,11 @@ public class BaseDao extends DataSourceHolder implements IBaseDao {
 		if(params != null && params.length > 0){
 			pss = new ArgumentPreparedStatementSetter(params);
 		}
-		Integer id = jdbcTemplate.execute(creator, new ReturnKeysPSCallback<Integer>(pss));
+		Integer id = DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).execute(creator, new ReturnKeysPSCallback<Integer>(pss));
 		if(id == null){
 			return -1;
 		}
 		return id;
 	}
+
 }

@@ -11,7 +11,7 @@ import cn.assist.easydao.pojo.PagePojo;
  * 定义BaseDao接口--测试版
  * 
  * @author caixb
- * @version 1.0.0
+ * @version 1.8.0
  */
 public interface IBaseDao{
 
@@ -79,7 +79,7 @@ public interface IBaseDao{
 	 * @param params 更新字段对应更新值
 	 * @return
 	 */
-	public <T extends BasePojo> int update(Class<T> entityClazz, Object uniqueValue,  String updated, Object... params);
+	public <T extends BasePojo> int update(Class<T> entityClazz, Object uniqueValue, String updated, Object... params);
 	
 	/**
 	 * 根据指定条件更新指定字段数据
@@ -152,6 +152,17 @@ public interface IBaseDao{
 	 * @return 数据库自增id
 	 */
 	public <T extends BasePojo> int insertReturnId(T entity);
+	
+	/**
+	 * 根据对象集合插入多条数据
+	 * 
+	 * 1、插入的对象集合必须规整，以list中第一个对象待插入的数据为准
+	 * 2、不保证插入数据全部成功，请自行根据返回受影响的行数做判断
+	 * 
+	 * @param entitys
+	 * @return 受影响的行数
+	 */
+	public <T extends BasePojo> int insertReturnId(List<T> entitys);
 	
 	/**
 	 * 根据sql 查询返回 int值

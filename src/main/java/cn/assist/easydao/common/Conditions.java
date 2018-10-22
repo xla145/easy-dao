@@ -1,4 +1,6 @@
 package cn.assist.easydao.common;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,131 +16,121 @@ import cn.assist.easydao.util.Inflector;
  * @author caixb
  *
  */
-public class Conditions{
+public class Conditions {
 
 	private String connSql = "";
 	private List<Object> connParams = new ArrayList<Object>();
 	private static final List<String> joinTypes = Arrays.asList(new String[] { "AND", "OR" });
-	
-	public Conditions(){}
-	
+
+	public Conditions() {}
+
 	/**
 	 * 
-	 * @param field 对象属性名
-	 * @param expr 表达式
-	 * @param value 值
+	 * @param field
+	 *            对象属性名， 可为pojo对象属性名或者数据库字段名，即驼峰式属性名或者下划线字段名
+	 * @param expr
+	 *            表达式 SqlExpr
+	 * @param value
+	 *            当SqlExpr 为 in表达式的时候， val为可变参数， 可传入多个基本类型的值， 且支持传入基本类型数组， 会拆分为单项值
+	 *            
 	 */
-	public Conditions(String field, SqlExpr sqlExpr, Object... value) throws DaoException{
+	public Conditions(String field, SqlExpr sqlExpr, Object... value) throws DaoException {
 		String expr = sqlExpr.toString();
 		field = field.trim();
-	    if (StringUtils.isBlank(field)) {
-	      throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  Invalid field : ").append(field).toString());
-	    }
-	   
+		if (StringUtils.isBlank(field)) {
+			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  Invalid field : ").append(field).toString());
+		}
+
 		String original = Inflector.getInstance().underscore(field);
 		StringBuffer sqlBuffer = new StringBuffer("`" + original + "`");
-		
+
 		switch (sqlExpr) {
-			case IS_NULL:
-				sqlBuffer.append(" " + expr + " ");
-				break;
-			case IS_NOT_NULL:
-				sqlBuffer.append(" " + expr + " ");
-				break;
-			case LEFT_LIKE:
-				if (value == null || value[0] == null || value.length != 1){
-					throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  only suppot 1 params: ").append(expr).toString());
+		case IS_NULL:
+			sqlBuffer.append(" " + expr + " ");
+			break;
+		case IS_NOT_NULL:
+			sqlBuffer.append(" " + expr + " ");
+			break;
+		case LEFT_LIKE:
+			if (value == null || value[0] == null || value.length != 1) {
+				throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  only suppot 1 params: ").append(expr).toString());
+			}
+			sqlBuffer.append(" " + expr + " %?");
+			connParams.add(value[0]);
+			break;
+		case RIGHT_LIKE:
+			if (value == null || value[0] == null || value.length != 1) {
+				throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  only suppot 1 params: ").append(expr).toString());
+			}
+			sqlBuffer.append(" " + expr + " ?%");
+			connParams.add(value[0]);
+			break;
+		case ALL_LIKE:
+			if (value == null || value[0] == null || value.length != 1) {
+				throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  only suppot 1 params: ").append(expr).toString());
+			}
+			sqlBuffer.append(" " + expr + " %?%");
+			connParams.add(value[0]);
+			break;
+		case IN:
+			if (value == null || value.length < 1) {
+				throw new DaoException(new StringBuilder().append(getClass().getName()).append(" : at least 1 params: ").append(field).toString());
+			}
+			sqlBuffer.append(" " + expr + "(");
+			for (int i = 0; i < value.length; i++) {
+				Object val = value[i];
+				if (val == null) {
+					continue;
 				}
-				sqlBuffer.append(" " + expr + " %?");
-				connParams.add(value[0]);
-				break;
-			case RIGHT_LIKE:
-				if (value == null || value[0] == null || value.length != 1){
-					throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  only suppot 1 params: ").append(expr).toString());
-				}
-				sqlBuffer.append(" " + expr + " ?%");
-				connParams.add(value[0]);
-				break;
-			case ALL_LIKE:
-				if (value == null || value[0] == null || value.length != 1){
-					throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  only suppot 1 params: ").append(expr).toString());
-				}
-				sqlBuffer.append(" " + expr + " %?%");
-				connParams.add(value[0]);
-				break;
-			case IN:
-				if(value == null || value.length < 1){
-					throw new DaoException(new StringBuilder().append(getClass().getName()).append(" : at least 1 params: ").append(field).toString());
-				}
-				sqlBuffer.append(" " + expr + "(");
-				for (int i = 0; i < value.length; i++) {
-					if(value[i] == null){
-						continue;
+				if (val.getClass().isArray()) {
+					int len = Array.getLength(val);
+					for (int x = 0; x < len; x++) {
+						Object o = Array.get(val, x);
+						if (o == null) {
+							continue;
+						}
+						connParams.add(o);
+						if (i > 0) {
+							sqlBuffer.append(",");
+						}
 					}
-					connParams.add(value[i]);
-					if(i > 0){
+				} else {
+					connParams.add(val);
+					if (i > 0) {
 						sqlBuffer.append(",");
 					}
-					sqlBuffer.append("?");
 				}
-				sqlBuffer.append(")");
-				break;
-			default:
-				if (value == null || value[0] == null || value.length != 1){
-					throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  only suppot 1 params: ").append(expr).toString());
-				}
-				sqlBuffer.append(" " + expr + " ?");
-				connParams.add(value[0]);
-				break;
+				sqlBuffer.append("?");
+			}
+			sqlBuffer.append(")");
+			break;
+		default:
+			if (value == null || value[0] == null || value.length != 1) {
+				throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  only suppot 1 params: ").append(expr).toString());
+			}
+			sqlBuffer.append(" " + expr + " ?");
+			connParams.add(value[0]);
+			break;
 		}
-		
-//		if(SqlExpr.IN.toString().equalsIgnoreCase(expr)){ 
-//			if(value == null || value.length < 1){
-//				throw new DaoException(new StringBuilder().append(getClass().getName()).append(" : at least 1 params: ").append(field).toString());
-//			}
-//			sqlBuffer.append(" " + expr + "(");
-//			for (int i = 0; i < value.length; i++) {
-//				if(value[i] == null){
-//					continue;
-//				}
-//				connParams.add(value[i]);
-//				if(i > 0){
-//					sqlBuffer.append(",");
-//				}
-//				sqlBuffer.append("?");
-//			}
-//			sqlBuffer.append(")");
-//		}else if(SqlExpr.IS_NULL.toString().equalsIgnoreCase(expr) || SqlExpr.IS_NOT_NULL.toString().equalsIgnoreCase(expr)){
-//			sqlBuffer.append(" " + expr + " ");
-//		}else{
-//			if (value == null || value.length != 1){
-//				throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  only suppot 1 params: ").append(expr).toString());
-//			}
-//			if(value[0] == null){
-//				return ;
-//			}
-//			sqlBuffer.append(" " + expr + " ?");
-//			connParams.add(value[0]);
-//		}
 		connSql = sqlBuffer.toString();
 	}
-	
-	public void add(Conditions conn, SqlJoin sqlJoin){
+
+	public void add(Conditions conn, SqlJoin sqlJoin) {
 		String joint = sqlJoin.toString();
-		if(StringUtils.isBlank(joint)){
+		if (StringUtils.isBlank(joint)) {
 			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  invalid joint : ").append(joint).toString());
 		}
 		if (!(joinTypes.contains(joint.toString().toUpperCase()))) {
-	      throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  invalid joint : ").append(joint).toString());
-	    }
-		if(StringUtils.isBlank(this.connSql)){
-			this.connSql = String.format("%s", new Object[] {conn.getConnSql()});
-		}else if(StringUtils.isBlank(conn.getConnSql())){
-			//this.connSql = this.connSql;
-		}else{
-			this.connSql = String.format("(%s %s %s)", new Object[] { this.connSql, joint, conn.getConnSql()});
+			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  invalid joint : ").append(joint).toString());
 		}
-		
+		if (StringUtils.isBlank(this.connSql)) {
+			this.connSql = String.format("%s", new Object[] { conn.getConnSql() });
+		} else if (StringUtils.isBlank(conn.getConnSql())) {
+			// this.connSql = this.connSql;
+		} else {
+			this.connSql = String.format("(%s %s %s)", new Object[] { this.connSql, joint, conn.getConnSql() });
+		}
+
 		this.connParams.addAll(conn.getConnParams());
 	}
 
