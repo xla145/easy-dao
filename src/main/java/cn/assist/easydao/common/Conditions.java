@@ -1,5 +1,6 @@
 package cn.assist.easydao.common;
 
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,9 +17,10 @@ import cn.assist.easydao.util.Inflector;
  * @author caixb
  *
  */
-public class Conditions {
+public class Conditions implements Serializable {
 
 	private String connSql = "";
+
 	private List<Object> connParams = new ArrayList<Object>();
 	private static final List<String> joinTypes = Arrays.asList(new String[] { "AND", "OR" });
 
@@ -135,7 +137,10 @@ public class Conditions {
 		if (!(joinTypes.contains(joint.toUpperCase()))) {
 			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  invalid joint : ").append(joint).toString());
 		}
-		if (StringUtils.isBlank(this.connSql)) {
+		/**
+		 * 如果是无参构造函数，创建Conditions，connSql默认为空字符串
+		 */
+		if (StringUtils.isEmpty(this.connSql)) {
 			this.connSql = String.format("%s", new Object[] { conn.getConnSql() });
 		} else if (StringUtils.isBlank(conn.getConnSql())) {
 			// this.connSql = this.connSql;
