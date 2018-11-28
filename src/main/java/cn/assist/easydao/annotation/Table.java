@@ -19,6 +19,5 @@ import org.springframework.stereotype.Component;
 @Documented
 @Component 
 public @interface Table {  
-    String name();
-    
+    String name() ;
 }  

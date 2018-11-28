@@ -11,7 +11,7 @@ import cn.assist.easydao.exception.DaoException;
 import cn.assist.easydao.util.Inflector;
 
 /**
- * 定义sql 条件
+ * 定义sql 条件 标点
  * 
  * @author caixb
  *
@@ -21,6 +21,8 @@ public class Conditions {
 	private String connSql = "";
 	private List<Object> connParams = new ArrayList<Object>();
 	private static final List<String> joinTypes = Arrays.asList(new String[] { "AND", "OR" });
+
+	private static final String POINT = ".";
 
 	public Conditions() {}
 
@@ -42,8 +44,18 @@ public class Conditions {
 		}
 
 		String original = Inflector.getInstance().underscore(field);
-		StringBuffer sqlBuffer = new StringBuffer("`" + original + "`");
 
+		StringBuffer sqlBuffer = new StringBuffer();
+
+		/**
+		 * 如果现在多表之间，有相同的字段名 如 a.status 返回 a.`status`
+		 */
+		if (original.contains(POINT)) {
+			String[] o = original.split("\\.");
+			sqlBuffer.append(o[0]+POINT+"`" + o[1] + "`");
+		} else {
+			sqlBuffer.append("`" + original + "`");
+		}
 		switch (sqlExpr) {
 		case IS_NULL:
 			sqlBuffer.append(" " + expr + " ");
@@ -120,7 +132,7 @@ public class Conditions {
 		if (StringUtils.isBlank(joint)) {
 			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  invalid joint : ").append(joint).toString());
 		}
-		if (!(joinTypes.contains(joint.toString().toUpperCase()))) {
+		if (!(joinTypes.contains(joint.toUpperCase()))) {
 			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  invalid joint : ").append(joint).toString());
 		}
 		if (StringUtils.isBlank(this.connSql)) {

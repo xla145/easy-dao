@@ -17,7 +17,7 @@ public class PagePojo<T> implements Serializable {
 	private int pageSize; // 每页显示记录数
 	private int total; // 总行数
 	private int pageTotal; // 总行数
-	private List<T> pgaeData;// 结果集
+	private List<T> pageData;// 结果集
 	
 	
 	
@@ -42,19 +42,23 @@ public class PagePojo<T> implements Serializable {
 	public int getPageTotal() {
 		return pageTotal;
 	}
+
 	public void setPageTotal(int pageTotal) {
 		this.pageTotal = pageTotal;
 	}
-	public List<T> getPgaeData() {
-		return pgaeData;
+
+	public List<T> getPageData() {
+		return pageData;
 	}
-	public void setPgaeData(List<T> pgaeData) {
-		this.pgaeData = pgaeData;
+
+	public void setPageData(List<T> pageData) {
+		this.pageData = pageData;
 	}
+
 	@Override
 	public String toString() {
 		return "PagePojo [pageNo=" + pageNo + ", pageSize=" + pageSize
-				+ ", total=" + total + ", pgaeData=" + pgaeData + "]";
+				+ ", total=" + total + ", pgaeData=" + pageData + "]";
 	}
 
 	

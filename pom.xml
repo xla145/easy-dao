@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>cn.assist</groupId>
 	<artifactId>easy-dao</artifactId>
-	<version>1.1.7</version>
+	<version>1.2.0</version>
 	<packaging>jar</packaging>
 	<name>easy-dao</name>
 	<url>http://maven.apache.org</url>
@@ -19,8 +19,8 @@
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -34,6 +34,7 @@
 						</goals>
 					</execution>
 				</executions>
+				<version>3.0.1</version>
 			</plugin>
 		</plugins>
 	</build>
@@ -75,7 +76,15 @@
 			<artifactId>spring-beans</artifactId>
 			<version>4.3.10.RELEASE</version>
 		</dependency>
-	</dependencies>
+    </dependencies>
 
+	<!-- 配置部署构建到私服 -->
+	<distributionManagement>
+		<repository>
+			<id>rdc-releases</id>
+			<name>rdc-releases</name>
+			<url>https://repo.rdc.aliyun.com/repository/37876-release-GbGOoG/</url>
+		</repository>
+	</distributionManagement>
 
 </project>
