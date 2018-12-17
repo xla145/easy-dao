@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import cn.assist.easydao.util.CommonUtil;
+import cn.assist.easydao.util.Inflector;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,6 +29,7 @@ import cn.assist.easydao.pojo.BasePojo;
 import cn.assist.easydao.pojo.PagePojo;
 import cn.assist.easydao.util.MessageFormat;
 import cn.assist.easydao.util.PojoHelper;
+import org.springframework.util.CollectionUtils;
 
 /**
  * 封装常用数据库操作方法--测试版
@@ -44,6 +46,7 @@ import cn.assist.easydao.util.PojoHelper;
  *
  */
 public class BaseDao implements IBaseDao {
+
 	private Log logger = LogFactory.getLog(BaseDao.class);
 	private String dataSourceName;
 	
@@ -54,6 +57,7 @@ public class BaseDao implements IBaseDao {
 	}
 	
 	BaseDao(){}
+
 	BaseDao(String dataSourceName){
 		this.dataSourceName = dataSourceName;
 	}
@@ -73,21 +77,26 @@ public class BaseDao implements IBaseDao {
 		return update(entity, null, null);
 	}
 
+
+
 	@Override
-	public <T extends BasePojo> int update(T entity, String updated) {
-		if(StringUtils.isBlank(updated)){
-			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  The updated is not null ").toString());
+	public <T extends BasePojo> int update(T entity, String[] params) {
+		if(params == null || params.length == 0){
+			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  The params is not null ").toString());
 		}
-		return update(entity, null, updated);
+		return update(entity, null, params);
 	}
+
 
 	@Override
 	public <T extends BasePojo> int update(T entity, Conditions conn) {
 		return update(entity, conn, null);
 	}
 
+
+
 	@Override
-	public <T extends BasePojo> int update(T entity, Conditions conn, String updated) {
+	public <T extends BasePojo> int update(T entity, Conditions conn, String[] params) {
 		PojoHelper pojoHelper = new PojoHelper(entity);
 		
 		String tableName = pojoHelper.getTableName(); //表名
@@ -95,13 +104,11 @@ public class BaseDao implements IBaseDao {
 		Object pkValue = pojoHelper.getPkValue(pkName); //主键值
 		
 		//待更新字段<===>数据
-		Map<String, Object> validDatas = new HashMap<String, Object>();
-		if(StringUtils.isNotBlank(updated)){
-			String[] updateds = updated.split(",");
-			for (int i = 0; i < updateds.length; i++) {
-				validDatas.put(updateds[i], pojoHelper.getMethodValue(updateds[i]));
-			}
-		}else{
+		Map<String, Object> validDatas;
+
+		if(params != null && params.length > 0){
+			validDatas = Arrays.stream(params).collect(Collectors.toMap(p -> p,p -> pojoHelper.getMethodValue(p)));
+		} else {
 			validDatas = pojoHelper.validDataList();
 		}
 		validDatas.remove(pkName); //主键不更新(如果指定了主键名)
@@ -118,7 +125,7 @@ public class BaseDao implements IBaseDao {
 	}
 
 	@Override
-	public <T extends BasePojo> int update(Class<T> entityClazz, Object uniqueValue, String updated, Object... params) {
+	public <T extends BasePojo> int update(Class<T> entityClazz, Object uniqueValue, String[] updated, Object... params) {
 		String pkName = "";//主键名
 		try {
 			pkName = new PojoHelper(entityClazz.newInstance()).getPkName(Id.class); 
@@ -130,42 +137,36 @@ public class BaseDao implements IBaseDao {
 	}
 
 	@Override
-	public <T extends BasePojo> int update(Class<T> entityClazz, Conditions conn, String updated, Object... params) {
-		if(StringUtils.isBlank(updated)){
-			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  The updated is not null ").toString());
+	public <T extends BasePojo> int update(Class<T> entityClazz, Conditions conn, Map<String,Object> param) {
+		if(param == null || param.entrySet().size() == 0){
+			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  The param is not null ").toString());
+		}
+		// 条件不能为空
+		if (conn == null || StringUtils.isNotBlank(conn.getConnSql()) || CollectionUtils.isEmpty(conn.getConnParams())) {
+			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  The conn is not null ").toString());
 		}
 		PojoHelper pojoHelper = null;
-		String tableName = ""; // 表名
+		// 表名
+		String tableName = "";
 		try {
 			pojoHelper = new PojoHelper(entityClazz.newInstance());
 			tableName = pojoHelper.getTableName(); //表名
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
 		if(StringUtils.isBlank(tableName)){
 			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  The table name is not null ").toString());
 		}
-		
 		StringBuffer sql = new StringBuffer("update " + tableName + " set ");
-		
-		String[] updateds = updated.split(",");
-		for (int i = 0; i < updateds.length; i++) {
-			if (i > 0){
-				sql.append(", ");
-			}
-			sql.append("`" + updateds[i] + "` = ?");
-		}
-		
-		if(conn != null && StringUtils.isNotBlank(conn.getConnSql())){
-			sql.append(" where " + conn.getConnSql());
-		}
-		
-		List<Object> paramArr = new ArrayList<Object>();
-		paramArr = Arrays.asList(params);
-		List<Object> paramList = new ArrayList<Object>(paramArr);
+		List<Object> paramList = new ArrayList<>();
+		param.entrySet().stream().forEach(s -> {
+			sql.append("`" + s.getKey() + "` = ?,");
+			paramList.add(s.getValue());
+		});
+		// 去除多余的逗号
+		sql.deleteCharAt(sql.length() - 1);
+		sql.append(" where " + conn.getConnSql());
 		paramList.addAll(conn.getConnParams());
-		
 		return executeUpdate(sql.toString(), paramList.toArray());
 	}
 
@@ -188,9 +189,46 @@ public class BaseDao implements IBaseDao {
 
 	@Override
 	public <T extends BasePojo> int insert(List<T> entitys) {
-		
 		return insertMulti(entitys, false);
 	}
+
+
+	@Override
+	public <T extends BasePojo> int merge(T entity,String... params) {
+		StringBuffer sql = new StringBuffer("insert into ");
+		StringBuffer insertFields = new StringBuffer();
+		PojoHelper pojoHelper = new PojoHelper(entity);
+		/**
+		 * 表名
+		 */
+		sql.append(pojoHelper.getTableName());
+		StringBuffer insertValues = new StringBuffer();
+		//待插入字段<===>数据
+		Map<String, Object> validDatas =  pojoHelper.validDataList();
+		//待插入参数
+		List<Object> paramList = new ArrayList<Object>();
+		validDatas.entrySet().stream().map(Map.Entry::getKey).forEach(new Consumer<String>() {
+			@Override
+			public void accept(String s) {
+				insertFields.append("`" + s + "` ,");
+				insertValues.append("?,");
+				paramList.add(validDatas.get(s));
+			}
+		});
+		sql.append("(" + insertFields.deleteCharAt(insertFields.length() - 1) + ") ");
+		sql.append("values(" + insertValues.deleteCharAt(insertValues.length() - 1) + ") ");
+		sql.append("ON DUPLICATE KEY UPDATE ");
+		for (String p:params) {
+			String newParam = Inflector.getInstance().underscore(p);
+		   	sql.append( newParam+ " = ? ,");
+			paramList.add(validDatas.get(newParam));
+		}
+		sql.deleteCharAt(sql.length() - 1);
+		return executeInsert(sql.toString(), paramList.toArray(),false);
+	}
+
+
+
 
 	@Override
 	public int insertReturnId(String sql) {
@@ -229,7 +267,7 @@ public class BaseDao implements IBaseDao {
 			logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
 		}
 				
-		ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql.toString());
+		ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql);
 		if(params == null || params.length < 1){
 			return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForObject(creator.getSql(), Integer.class);
 		}
@@ -658,6 +696,28 @@ public class BaseDao implements IBaseDao {
 			return -1;
 		}
 		return id;
+	}
+
+
+	public static void main(String[] args) {
+
+//		String[] s = {"time","times"};
+//
+//
+//
+//
+//
+//
+//		Map<String,String> map = new HashMap<>();
+//
+//		map.put("time","55555555555555");
+//		map.put("times","555555555llll55555");
+//
+//
+//		map.entrySet().stream().map(Map.Entry::getKey)
+//
+//		Arrays.stream(s).collect(Collectors.toMap(p -> p,p -> map.get(p))).entrySet().stream().forEach(m -> System.out.println(m.getKey()+"  "+m.getValue()));
+
 	}
 
 }

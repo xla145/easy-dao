@@ -1,5 +1,12 @@
 package cn.assist.easydao.util;
 
+import cn.assist.easydao.common.Conditions;
+import cn.assist.easydao.common.SqlExpr;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class CommonUtil {
 
 
@@ -19,6 +26,20 @@ public class CommonUtil {
 
 
     public static void main(String[] args) {
-        System.out.println(getPlaceholderGroup(5));
+
+
+        List<Integer> list = new ArrayList<>();
+
+
+        list.add(4444);
+
+        list.add(4444333);
+
+
+        Conditions conn = new Conditions("id", SqlExpr.IN,2,4);
+
+
+        System.out.println(conn.getConnSql() +"  ===  "+ StringUtils.join(conn.getConnParams().toArray(),","));
+//        System.out.println(getPlaceholderGroup(5));
     }
 }

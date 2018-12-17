@@ -8,7 +8,7 @@ package cn.assist.easydao.common;
  */
 public enum SqlExpr {
     
-	EQUAL("="), UNEQUAL("!="), GT(">"), GT_AND_EQUAL(">="), LT("<"), LT_AND_EQUAL("<="), IN("in"), IS_NULL("is null"), IS_NOT_NULL("is not null"), LEFT_LIKE("like"), RIGHT_LIKE("like"), ALL_LIKE("like"), ;
+	EQUAL("="), UNEQUAL("!="), GT(">"), GT_AND_EQUAL(">="), LT("<"), LT_AND_EQUAL("<="), IN("in"), IS_NULL("is null"), IS_NOT_NULL("is not null"), LEFT_LIKE("like"), RIGHT_LIKE("like"), ALL_LIKE("like"),BETWEEN_AND("between");
     private String expr ;
 
     private SqlExpr(String expr) {

@@ -62,25 +62,10 @@ public class PojoHelper {
 		initDeclaredFields(obj.getClass());
 	}
 	
-//	public Object getPojoOriginal() {
-//		return this.obj;
-//	}
-	
-//	/****
-//	 * 
-//	 * 获取对象可见字段
-//	 * 
-//	 * @return
-//	 */
-//	public Hashtable<String, Field> getAccessibleFields(){
-//		return this.fieldHash.get();
-//	}
-	
 	/**
 	 * 获取主键Id名 
 	 * 
-	 * @param fieldName 字段名
-	 * @param annotationClazz 注解类
+	 * @param annClazz 字段名
 	 * @return
 	 */
 	public <T extends Id> String getPkName(Class<T> annClazz) {
@@ -121,10 +106,9 @@ public class PojoHelper {
 	
 	/**
      * 根据entity 得到表名
-     * 
+     *
      * 规则：优先获取注解表名，如未设置，则以实体名作为表名（驼峰转为下划线）
-     * 
-	 * @param entity
+	 *
 	 * @return
 	 */
     public <T extends BasePojo> String getTableName() {
@@ -136,7 +120,7 @@ public class PojoHelper {
     	}
     	
         String simpleName = obj.getClass().getSimpleName();
-        return inflector.underscore("`" + simpleName + "`");
+        return ("`" + inflector.underscore(simpleName) + "`");
         
     }
 	
@@ -207,7 +191,7 @@ public class PojoHelper {
 	 * 调用set方法
 	 * 
 	 * @param property 方法名
-	 * @param object 属性值
+	 * @param value 属性值
 	 * @return 是否设置成功
 	 */
 	public boolean setMethodValue(String property,Object value) {
@@ -228,7 +212,7 @@ public class PojoHelper {
 	 * 判断属性是否有注解
 	 * 
 	 * @param fieldName 字段名
-	 * @param annotationClazz 注解类
+	 * @param annClazz 注解类
 	 * @return
 	 */
 	public <T extends Annotation> boolean isAnnotationPresent(String fieldName, Class<T> annClazz) {
@@ -242,8 +226,7 @@ public class PojoHelper {
 	/**
 	 * 获取有指定注解类的字段名
 	 * 
-	 * @param fieldName 字段名
-	 * @param annotationClazz 注解类
+	 * @param annClazz 字段名
 	 * @return
 	 */
 	public <T extends Annotation> Set<String> getAnnotationfields(Class<T> annClazz) {

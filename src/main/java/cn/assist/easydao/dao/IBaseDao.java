@@ -45,10 +45,10 @@ public interface IBaseDao{
 	 * 根据指定字段更新数据，更新条件为主键；默认为id
 	 * 
 	 * @param entity 要更新的对象
-	 * @param updated 更新字段（属性名），英文逗号隔开
+	 * @param params 更新字段（属性名），英文逗号隔开
 	 * @return 受影响的行数
 	 */
-	public <T extends BasePojo> int update(T entity, String updated);
+	public <T extends BasePojo> int update(T entity, String... params);
 	
 	/**
 	 * 根据指定条件更新数据
@@ -64,10 +64,10 @@ public interface IBaseDao{
 	 * 
 	 * @param entity 目标对象
 	 * @param conn 更新条件
-	 * @param updated 更新字段（属性名），英文逗号隔开
+	 * @param params 更新字段（属性名,数组形式）
 	 * @return 受影响的行数
 	 */
-	public <T extends BasePojo> int update(T entity, Conditions conn, String updated);
+	public <T extends BasePojo> int update(T entity, Conditions conn, String[] params);
 	
 	
 	/**
@@ -75,22 +75,21 @@ public interface IBaseDao{
 	 * 
 	 * @param entityClazz 更新依赖
 	 * @param uniqueValue 主键id值
-	 * @param updated   更新字段（属性名），英文逗号隔开
+	 * @param updated   更新字段（属性名,数组形式）
 	 * @param params 更新字段对应更新值
 	 * @return
 	 */
-	public <T extends BasePojo> int update(Class<T> entityClazz, Object uniqueValue, String updated, Object... params);
+	public <T extends BasePojo> int update(Class<T> entityClazz, Object uniqueValue, String[] updated, Object... params);
 	
 	/**
 	 * 根据指定条件更新指定字段数据
 	 *  
 	 * @param entityClazz 更新依赖
 	 * @param conn 更新条件
-	 * @param updated  更新字段（属性名），英文逗号隔开
-	 * @param params 更新字段对应更新值
+	 * @param param 存放更新的数据 key：更新字段 value：更新的值  这样做为了数据的统一
 	 * @return
 	 */
-	public <T extends BasePojo> int update(Class<T> entityClazz, Conditions conn, String updated, Object... params);
+	public <T extends BasePojo> int update(Class<T> entityClazz, Conditions conn, Map<String,Object> param);
 	
 	/**
 	 * sql 插入数据
@@ -105,9 +104,19 @@ public interface IBaseDao{
 	 * 
 	 * @param sql
 	 * @param params
-	 * @return 受影响的行数
+	 * @return 受影响的行数 参数
 	 */
 	public int insert(String sql, Object... params);
+
+
+	/**
+	 *  添加数据，如果主键存在 则更新数据
+	 * @param entity
+	 * @param params 需要更新的model属性名
+	 * @return
+	 */
+	public <T extends BasePojo> int merge(T entity,String... params);
+
 	
 	/**
 	 * 根据对象插入数据
@@ -119,10 +128,9 @@ public interface IBaseDao{
 	
 	/**
 	 * 根据对象集合插入多条数据
-	 * 
-	 * 1、插入的对象集合必须规整，以list中第一个对象待插入的数据为准
-	 * 2、不保证插入数据全部成功，请自行根据返回受影响的行数做判断
-	 * 
+	 *
+	 * 1：插入多条数据时，目前是插入的字段信息是对象的所有属性 主要是统一，不然之前是null字段是不插入的，但是因为多条数据插入，
+	 * 不能保存所有数据一致
 	 * @param entitys
 	 * @return 受影响的行数
 	 */
