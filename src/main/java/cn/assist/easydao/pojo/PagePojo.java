@@ -12,14 +12,28 @@ import java.util.List;
 public class PagePojo<T> implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
-	
-	private int pageNo; // 当前页面
-	private int pageSize; // 每页显示记录数
-	private int total; // 总行数
-	private int pageTotal; // 总行数
-	private List<T> pageData;// 结果集
-	
-	
+
+	/**
+	 *  当前页面
+	 */
+	private int pageNo;
+	/**
+	 * 每页显示记录数
+	 */
+	private int pageSize;
+	/**
+	 * 总行数
+	 */
+	private int total;
+	/**
+	 * 总页数
+	 */
+	private int pageTotal;
+	/**
+	 * 结果集
+	 */
+	private List<T> pageData;
+
 	
 	public int getPageNo() {
 		return pageNo;
@@ -58,8 +72,6 @@ public class PagePojo<T> implements Serializable {
 	@Override
 	public String toString() {
 		return "PagePojo [pageNo=" + pageNo + ", pageSize=" + pageSize
-				+ ", total=" + total + ", pgaeData=" + pageData + "]";
+				+ ", total=" + total + ", pageData=" + pageData + "]";
 	}
-
-	
 }

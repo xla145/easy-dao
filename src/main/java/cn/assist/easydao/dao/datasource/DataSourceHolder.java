@@ -5,9 +5,11 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
 /**
  * 数据源 持有者 -- 测试版
@@ -16,12 +18,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author caixb
  *
  */
-public class DataSourceHolder extends AbstractRoutingDataSource implements ApplicationContextAware{
-	public static boolean dev = false; 		//是否开启开发模式
+public class DataSourceHolder extends AbstractRoutingDataSource implements ApplicationContextAware {
+
+	/**
+	 * 是否开启开发模式
+	 */
+	public static boolean dev = false;
 	
 	private ApplicationContext context;
 	
 	private static JdbcTemplate jdbcTemplate = new JdbcTemplate();
+
+	private String currentLookupKey;
 	
 	public static DataSourceHolder ds;
 	
@@ -43,15 +51,17 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 	 * @return
 	 */
 	public JdbcTemplate getJdbcTemplate(String lookupKey) {
-		DataSource dataSource = determineTargetDataSource(lookupKey);
+		setCurrentLookupKey(lookupKey);
+		DataSource dataSource = determineTargetDataSource();
 		jdbcTemplate.setDataSource(dataSource);
 		return jdbcTemplate;
 	}
-	
+
 	@PostConstruct
 	public void afterProperties() {
 		ds = this.context.getBean(this.getClass());
 	}
+
 	@Override
 	public void setApplicationContext(ApplicationContext context) {
 		this.context = context;
@@ -59,6 +69,16 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 	
 	@Override
 	protected Object determineCurrentLookupKey() {
+		/**
+		 * 自己通过BaseDao use自定义数据源，优先级最高，然后再方法级的注解数据源，再类的注解数据源
+		 */
+		if (StringUtils.isNotEmpty(getCurrentLookupKey())) {
+			return getCurrentLookupKey();
+		}
+		String dataSourceName = DataSourceContextHolder.getDbType();
+		if (StringUtils.isNotEmpty(dataSourceName)) {
+			return dataSourceName;
+		}
 		return null;
 	}
 	
@@ -66,4 +86,16 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 		DataSourceHolder.dev = dev;
 	}
 
+
+	/**
+	 * 设置当前的数据源
+	 * @return
+	 */
+	public String getCurrentLookupKey() {
+		return currentLookupKey;
+	}
+
+	public void setCurrentLookupKey(String currentLookupKey) {
+		this.currentLookupKey = currentLookupKey;
+	}
 }

@@ -32,6 +32,7 @@ public class SpringResultHandler<T> implements RowCallbackHandler {
 		this.dataList = new ArrayList<>();
 	}
 
+	@Override
 	public void processRow(ResultSet rs) throws SQLException {
 		T rsEntity = null;
 		try {
@@ -47,12 +48,14 @@ public class SpringResultHandler<T> implements RowCallbackHandler {
 			for (String fieldName : fields) {
 				Object columnValue = null;
 				try {
-					columnValue = rs.getObject(inf.underscore(fieldName)); // 取结果集中的值
+					// 取结果集中的值
+					columnValue = rs.getObject(inf.underscore(fieldName));
 				} catch (Exception e) {
 					continue;
 				}
 				ConvertUtils.register(new DateConverter(null), java.util.Date.class);
-				BeanUtils.copyProperty(rsEntity, fieldName, columnValue); // 指定字段copy值
+				//指定字段copy值
+				BeanUtils.copyProperty(rsEntity, fieldName, columnValue);
 			}
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			e.printStackTrace();
@@ -77,7 +80,8 @@ public class SpringResultHandler<T> implements RowCallbackHandler {
 						set.add(field.getName());
 					}
 				}
-			    entityClass = entityClass.getSuperclass(); //得到父类,然后赋给自己
+				// 得到父类,然后赋给自己
+			    entityClass = entityClass.getSuperclass();
 			}
 			//单独处理
 			if(entityClass.getName().toLowerCase().equals("cn.assist.easydao.pojo.basepojo")){
