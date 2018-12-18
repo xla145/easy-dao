@@ -12,11 +12,11 @@ import org.springframework.util.Assert;
  * @author caixb
  *
  */
-public class ReturnKeyPSCreator implements PreparedStatementCreator, SqlProvider {
+public class ReturnKeyCreator implements PreparedStatementCreator, SqlProvider {
 
-	private final String sql;
+	private String sql;
 
-	public ReturnKeyPSCreator(String sql) {
+	public ReturnKeyCreator(String sql) {
 		Assert.notNull(sql, "SQL must not be null");
 		this.sql = sql;
 	}

@@ -2,7 +2,6 @@ package cn.assist.easydao.dao;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -22,8 +21,8 @@ import cn.assist.easydao.common.Conditions;
 import cn.assist.easydao.common.Sort;
 import cn.assist.easydao.common.SqlExpr;
 import cn.assist.easydao.dao.datasource.DataSourceHolder;
-import cn.assist.easydao.dao.sqlcreator.ReturnKeyPSCreator;
-import cn.assist.easydao.dao.sqlcreator.ReturnKeysPSCallback;
+import cn.assist.easydao.dao.sqlcreator.ReturnKeyCreator;
+import cn.assist.easydao.dao.sqlcreator.ReturnKeysCallback;
 import cn.assist.easydao.dao.sqlcreator.SpringResultHandler;
 import cn.assist.easydao.exception.DaoException;
 import cn.assist.easydao.pojo.BasePojo;
@@ -109,7 +108,8 @@ public class BaseDao implements IBaseDao {
         } else {
             validDatas = pojoHelper.validDataList();
         }
-        validDatas.remove(pkName); //主键不更新(如果指定了主键名)
+        // 主键不更新(如果指定了主键名)
+        validDatas.remove(pkName);
 
         //更新条件
         if (conn == null || StringUtils.isBlank(conn.getConnSql())) {
@@ -123,15 +123,18 @@ public class BaseDao implements IBaseDao {
     }
 
     @Override
-    public <T extends BasePojo> int update(Class<T> entityClazz, Object uniqueValue, String[] updated, Object... params) {
-        String pkName = "";//主键名
+    public <T extends BasePojo> int update(Class<T> entityClazz, Object uniqueValue, Map<String, Object> param) {
+        /**
+         * 主键名
+         */
+        String pkName = "";
         try {
             pkName = new PojoHelper(entityClazz.newInstance()).getPkName(Id.class);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return update(entityClazz, new Conditions(pkName, SqlExpr.EQUAL, uniqueValue), updated, params);
+        return update(entityClazz, new Conditions(pkName, SqlExpr.EQUAL, uniqueValue),param);
     }
 
     @Override
@@ -263,7 +266,7 @@ public class BaseDao implements IBaseDao {
             logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
         }
 
-        ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql);
+        ReturnKeyCreator creator = new ReturnKeyCreator(sql);
         if (params == null || params.length < 1) {
             return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForObject(creator.getSql(), Integer.class);
         }
@@ -303,7 +306,7 @@ public class BaseDao implements IBaseDao {
         if (DataSourceHolder.dev) {
             logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
         }
-        ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql.toString());
+        ReturnKeyCreator creator = new ReturnKeyCreator(sql.toString());
 
         if (params == null || params.length < 1) {
             return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForList(creator.getSql());
@@ -403,7 +406,7 @@ public class BaseDao implements IBaseDao {
         }
         SpringResultHandler<T> srh = new SpringResultHandler<T>(entityClazz);
 
-        ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql.toString());
+        ReturnKeyCreator creator = new ReturnKeyCreator(sql.toString());
 
         if (params == null || params.length < 1) {
             DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), srh);
@@ -448,7 +451,7 @@ public class BaseDao implements IBaseDao {
         }
         SpringResultHandler<T> srh = new SpringResultHandler<T>(entityClazz);
 
-        ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql.toString());
+        ReturnKeyCreator creator = new ReturnKeyCreator(sql.toString());
 
         if (params == null || params.size() < 1) {
             DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), srh);
@@ -639,7 +642,7 @@ public class BaseDao implements IBaseDao {
         if (DataSourceHolder.dev) {
             logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
         }
-        ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql);
+        ReturnKeyCreator creator = new ReturnKeyCreator(sql);
         if (params == null || params.length < 1) {
             return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).update(sql);
         }
@@ -662,7 +665,7 @@ public class BaseDao implements IBaseDao {
             return executeInsertReturnId(sql, params);
         }
 
-        ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql);
+        ReturnKeyCreator creator = new ReturnKeyCreator(sql);
         if (params == null || params.length < 1) {
             return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).update(sql);
         }
@@ -678,12 +681,12 @@ public class BaseDao implements IBaseDao {
      * @return
      */
     private int executeInsertReturnId(String sql, Object[] params) {
-        ReturnKeyPSCreator creator = new ReturnKeyPSCreator(sql);
+        ReturnKeyCreator creator = new ReturnKeyCreator(sql);
         PreparedStatementSetter pss = null;
         if (params != null && params.length > 0) {
             pss = new ArgumentPreparedStatementSetter(params);
         }
-        Integer id = DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).execute(creator, new ReturnKeysPSCallback<Integer>(pss));
+        Integer id = DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).execute(creator, new ReturnKeysCallback<Integer>(pss));
         if (id == null) {
             return -1;
         }

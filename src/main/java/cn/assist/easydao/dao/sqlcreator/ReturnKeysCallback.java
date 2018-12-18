@@ -14,11 +14,11 @@ import org.springframework.jdbc.core.PreparedStatementSetter;
  *
  * @param <T>
  */
-public class ReturnKeysPSCallback<T> implements PreparedStatementCallback<Integer> {
+public class ReturnKeysCallback<T> implements PreparedStatementCallback<Integer> {
 
 	private PreparedStatementSetter pss; //声明
 	
-	public ReturnKeysPSCallback(PreparedStatementSetter pss) {
+	public ReturnKeysCallback(PreparedStatementSetter pss) {
 		this.pss = pss;
 	}
 

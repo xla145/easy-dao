@@ -21,7 +21,7 @@ public interface IBaseDao{
 	 * @param sql
 	 * @return 受影响的行数
 	 */
-	public int update(String sql);
+	 int update(String sql);
 	
 	/**
 	 * sql更新数据
@@ -30,7 +30,7 @@ public interface IBaseDao{
 	 * @param params
 	 * @return 受影响的行数
 	 */
-	public int update(String sql, Object... params);
+	 int update(String sql, Object... params);
 	
 	/**
 	 * 根据对象属性更新数据，更新条件为 主键 方法指定，默认为id
@@ -39,25 +39,26 @@ public interface IBaseDao{
 	 * @param entity  
 	 * @return 受影响的行数
 	 */
-	public <T extends BasePojo> int update(T entity);
+	 <T extends BasePojo> int update(T entity);
 	
 	/**
 	 * 根据指定字段更新数据，更新条件为主键；默认为id
 	 * 
 	 * @param entity 要更新的对象
-	 * @param params 更新字段（属性名），英文逗号隔开
+	 * @param params 更新字段数组（属性名）
 	 * @return 受影响的行数
 	 */
-	public <T extends BasePojo> int update(T entity, String... params);
+	 <T extends BasePojo> int update(T entity, String[] params);
 	
 	/**
 	 * 根据指定条件更新数据
 	 * 注：只更新非空属性字段 忽略属性值为空的字段
 	 *  
-	 * @param entity  
+	 * @param entity
+	 * @param conn
 	 * @return 受影响的行数
 	 */
-	public <T extends BasePojo> int update(T entity, Conditions conn);
+	 <T extends BasePojo> int update(T entity, Conditions conn);
 	
 	/**
 	 * 根据指定条件更新指定字段数据
@@ -67,7 +68,7 @@ public interface IBaseDao{
 	 * @param params 更新字段（属性名,数组形式）
 	 * @return 受影响的行数
 	 */
-	public <T extends BasePojo> int update(T entity, Conditions conn, String[] params);
+	 <T extends BasePojo> int update(T entity, Conditions conn, String[] params);
 	
 	
 	/**
@@ -75,11 +76,10 @@ public interface IBaseDao{
 	 * 
 	 * @param entityClazz 更新依赖
 	 * @param uniqueValue 主键id值
-	 * @param updated   更新字段（属性名,数组形式）
-	 * @param params 更新字段对应更新值
+	 * @param param 存放更新的数据 key：更新字段 value：更新的值  这样做为了数据的统一
 	 * @return
 	 */
-	public <T extends BasePojo> int update(Class<T> entityClazz, Object uniqueValue, String[] updated, Object... params);
+	 <T extends BasePojo> int update(Class<T> entityClazz, Object uniqueValue, Map<String,Object> param);
 	
 	/**
 	 * 根据指定条件更新指定字段数据
@@ -89,7 +89,7 @@ public interface IBaseDao{
 	 * @param param 存放更新的数据 key：更新字段 value：更新的值  这样做为了数据的统一
 	 * @return
 	 */
-	public <T extends BasePojo> int update(Class<T> entityClazz, Conditions conn, Map<String,Object> param);
+	 <T extends BasePojo> int update(Class<T> entityClazz, Conditions conn, Map<String,Object> param);
 	
 	/**
 	 * sql 插入数据
@@ -97,7 +97,7 @@ public interface IBaseDao{
 	 * @param sql
 	 * @return 受影响的行数
 	 */
-	public int insert(String sql);
+	 int insert(String sql);
 	
 	/**
 	 * sql 插入数据
@@ -106,7 +106,7 @@ public interface IBaseDao{
 	 * @param params
 	 * @return 受影响的行数 参数
 	 */
-	public int insert(String sql, Object... params);
+	 int insert(String sql, Object... params);
 
 
 	/**
@@ -115,7 +115,7 @@ public interface IBaseDao{
 	 * @param params 需要更新的model属性名
 	 * @return
 	 */
-	public <T extends BasePojo> int merge(T entity,String... params);
+	 <T extends BasePojo> int merge(T entity,String... params);
 
 	
 	/**
@@ -124,17 +124,17 @@ public interface IBaseDao{
 	 * @param entity
 	 * @return 受影响的行数
 	 */
-	public <T extends BasePojo> int insert(T entity);
+	 <T extends BasePojo> int insert(T entity);
 	
 	/**
 	 * 根据对象集合插入多条数据
 	 *
 	 * 1：插入多条数据时，目前是插入的字段信息是对象的所有属性 主要是统一，不然之前是null字段是不插入的，但是因为多条数据插入，
 	 * 不能保存所有数据一致
-	 * @param entitys
+	 * @param entityList
 	 * @return 受影响的行数
 	 */
-	public <T extends BasePojo> int insert(List<T> entitys);
+	 <T extends BasePojo> int insert(List<T> entityList);
 	
 	/**
 	 * sql 插入数据
@@ -142,7 +142,7 @@ public interface IBaseDao{
 	 * @param sql
 	 * @return 数据库自增id
 	 */
-	public int insertReturnId(String sql);
+	 int insertReturnId(String sql);
 	
 	/**
 	 * sql 插入数据
@@ -151,7 +151,7 @@ public interface IBaseDao{
 	 * @param params 
 	 * @return 数据库自增id
 	 */
-	public int insertReturnId(String sql, Object... params);
+	 int insertReturnId(String sql, Object... params);
 	
 	/**
 	 * 根据对象插入数据
@@ -159,7 +159,7 @@ public interface IBaseDao{
 	 * @param entity
 	 * @return 数据库自增id
 	 */
-	public <T extends BasePojo> int insertReturnId(T entity);
+	 <T extends BasePojo> int insertReturnId(T entity);
 	
 	/**
 	 * 根据对象集合插入多条数据
@@ -170,7 +170,7 @@ public interface IBaseDao{
 	 * @param entitys
 	 * @return 受影响的行数
 	 */
-	public <T extends BasePojo> int insertReturnId(List<T> entitys);
+	 <T extends BasePojo> int insertReturnId(List<T> entitys);
 	
 	/**
 	 * 根据sql 查询返回 int值
@@ -178,7 +178,7 @@ public interface IBaseDao{
 	 * @param sql 
 	 * @return
 	 */
-	public int queryForInt(String sql);
+	 int queryForInt(String sql);
 	
 	/**
 	 * 根据sql 查询返回 int值
@@ -187,7 +187,7 @@ public interface IBaseDao{
 	 * @param params 参数合集
 	 * @return
 	 */
-	public int queryForInt(String sql, Object... params);
+	 int queryForInt(String sql, Object... params);
 	
 	/**
 	 * 根据sql 查询返回 map集合
@@ -195,7 +195,7 @@ public interface IBaseDao{
 	 * @param sql 
 	 * @return
 	 */
-	public Map<String, Object> queryForMap(String sql);
+	 Map<String, Object> queryForMap(String sql);
 	
 	/**
 	 * 根据sql 查询返回 map集合
@@ -204,7 +204,7 @@ public interface IBaseDao{
 	 * @param params 参数合集
 	 * @return
 	 */
-	public Map<String, Object> queryForMap(String sql, Object... params);
+	 Map<String, Object> queryForMap(String sql, Object... params);
 	
 	/**
 	 * 根据sql 查询返回 List<map>集合
@@ -212,7 +212,7 @@ public interface IBaseDao{
 	 * @param sql 
 	 * @return
 	 */
-	public List<Map<String, Object>> queryForListMap(String sql);
+	 List<Map<String, Object>> queryForListMap(String sql);
 	
 	/**
 	 * 根据sql 查询返回  List<map>集合
@@ -221,7 +221,7 @@ public interface IBaseDao{
 	 * @param params 参数合集
 	 * @return
 	 */
-	public List<Map<String, Object>> queryForListMap(String sql, Object... params);
+	 List<Map<String, Object>> queryForListMap(String sql, Object... params);
 	
 	/**
 	 * 根据数据库唯一索引查询
@@ -230,7 +230,7 @@ public interface IBaseDao{
 	 * @param pkValue 唯一索引值； 缺省为id
 	 * @return entity
 	 */
-	public <T extends BasePojo> T queryForEntity(Class<T> entityClazz, Object pkValue);
+	 <T extends BasePojo> T queryForEntity(Class<T> entityClazz, Object pkValue);
 	
 	/**
 	 * 根据指定条件查询
@@ -240,7 +240,7 @@ public interface IBaseDao{
 	 * @param conn 查询条件
 	 * @return entity
 	 */
-	public <T extends BasePojo> T queryForEntity(Class<T> entityClazz, Conditions conn);
+	 <T extends BasePojo> T queryForEntity(Class<T> entityClazz, Conditions conn);
 	
 	
 	/**
@@ -252,7 +252,7 @@ public interface IBaseDao{
 	 * @param params 参数集
 	 * @return entity
 	 */
-	public <T extends BasePojo> T queryForEntity(Class<T> entityClazz, String sql, Object... params);
+	 <T extends BasePojo> T queryForEntity(Class<T> entityClazz, String sql, Object... params);
 	
 	/**
 	 * 根据sql查询
@@ -263,7 +263,7 @@ public interface IBaseDao{
 	 * @param params 参数合集
 	 * @return
 	 */
-	public <T extends BasePojo> T queryForEntity(Class<T> entityClazz, String sql, List<Object> params);
+	 <T extends BasePojo> T queryForEntity(Class<T> entityClazz, String sql, List<Object> params);
 	
 	/**
 	 * 根据指定条件查询返回list<entity>
@@ -272,7 +272,7 @@ public interface IBaseDao{
 	 * @param conn 查询条件
 	 * @return List<entity>
 	 */
-	public <T extends BasePojo> List<T> queryForListEntity(Class<T> entityClazz, Conditions conn);
+	 <T extends BasePojo> List<T> queryForListEntity(Class<T> entityClazz, Conditions conn);
 	
 	/**
 	 * 根据sql查询返回list<entity>
@@ -282,7 +282,7 @@ public interface IBaseDao{
 	 * @param params 参数合集
 	 * @return
 	 */
-	public <T extends BasePojo> List<T> queryForListEntity(Class<T> entityClazz, String sql, Object... params);
+	 <T extends BasePojo> List<T> queryForListEntity(Class<T> entityClazz, String sql, Object... params);
 	
 	/**
 	 * 根据sql查询返回list<entity>
@@ -292,7 +292,7 @@ public interface IBaseDao{
 	 * @param params 参数合集
 	 * @return
 	 */
-	public <T extends BasePojo> List<T> queryForListEntity(Class<T> entityClazz, String sql, List<Object> params);
+	 <T extends BasePojo> List<T> queryForListEntity(Class<T> entityClazz, String sql, List<Object> params);
 	
 	/**
 	 * 根据指定条件查询返回list<entity>
@@ -302,7 +302,7 @@ public interface IBaseDao{
 	 * @param sort 排序
 	 * @return List<entity>
 	 */
-	public <T extends BasePojo> List<T> queryForListEntity(Class<T> entityClazz, Conditions conn, Sort sort);
+	 <T extends BasePojo> List<T> queryForListEntity(Class<T> entityClazz, Conditions conn, Sort sort);
 	
 	/**
 	 * 根据sql查询返回list<entity>
@@ -313,7 +313,7 @@ public interface IBaseDao{
 	 * @param params 参数合集
 	 * @return
 	 */
-	public <T extends BasePojo> List<T> queryForListEntity(Class<T> entityClazz, String sql, Sort sort, Object... params);
+	 <T extends BasePojo> List<T> queryForListEntity(Class<T> entityClazz, String sql, Sort sort, Object... params);
 	
 	/**
 	 * 根据sql查询返回list<entity>
@@ -324,7 +324,7 @@ public interface IBaseDao{
 	 * @param params 参数合集
 	 * @return
 	 */
-	public <T extends BasePojo> List<T> queryForListEntity(Class<T> entityClazz, String sql, Sort sort, List<Object> params);
+	 <T extends BasePojo> List<T> queryForListEntity(Class<T> entityClazz, String sql, Sort sort, List<Object> params);
 	
 	/**
 	 * 根据指定条件查询返回list<entity>
@@ -336,7 +336,7 @@ public interface IBaseDao{
 	 * @param pageSize 查询页数量
 	 * @return PagePojo<T>
 	 */
-	public <T extends BasePojo> PagePojo<T> queryForListPage(Class<T> entityClazz, Conditions conn, Sort sort, int pageNo, int pageSize);
+	 <T extends BasePojo> PagePojo<T> queryForListPage(Class<T> entityClazz, Conditions conn, Sort sort, int pageNo, int pageSize);
 	
 	
 	/**
@@ -350,7 +350,7 @@ public interface IBaseDao{
 	 * @param params 参数合集
 	 * @return PagePojo<T>
 	 */
-	public <T extends BasePojo> PagePojo<T> queryForListPage(Class<T> entityClazz, String sql, List<Object> params, Sort sort, int pageNo, int pageSize);
+	 <T extends BasePojo> PagePojo<T> queryForListPage(Class<T> entityClazz, String sql, List<Object> params, Sort sort, int pageNo, int pageSize);
 	
 	
 	/**
@@ -360,5 +360,5 @@ public interface IBaseDao{
 	 * @param params
 	 * @return
 	 */
-	public int delete(String sql, Object... params);
+	 int delete(String sql, Object... params);
 }

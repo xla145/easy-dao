@@ -2,12 +2,10 @@ package cn.assist.easydao.dao.sqlcreator;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import cn.assist.easydao.exception.DaoException;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
@@ -32,8 +30,10 @@ public class SpringResultHandler<T> implements RowCallbackHandler {
 		this.dataList = new ArrayList<>();
 	}
 
+	private static String BASE_PACKAGE_NAME = "cn.assist.easydao.pojo.basepojo";
+
 	@Override
-	public void processRow(ResultSet rs) throws SQLException {
+	public void processRow(ResultSet rs) {
 		T rsEntity = null;
 		try {
 			rsEntity = entityClass.newInstance();
@@ -58,7 +58,7 @@ public class SpringResultHandler<T> implements RowCallbackHandler {
 				BeanUtils.copyProperty(rsEntity, fieldName, columnValue);
 			}
 		} catch (IllegalAccessException | InvocationTargetException e) {
-			e.printStackTrace();
+			throw new DaoException("copy property error ");
 		}
 		dataList.add(rsEntity);
 	}
@@ -70,29 +70,20 @@ public class SpringResultHandler<T> implements RowCallbackHandler {
 	 */
 	private Set<String> getFields(Class<?> clazz){
 		
-		Set<String> set = new HashSet<String>();
+		Set<String> set = new HashSet<>();
 		try {
 			Class<?> entityClass = clazz.newInstance().getClass();
-			while (entityClass != null && !entityClass.getName().toLowerCase().equals("cn.assist.easydao.pojo.basepojo")) {
-				Field[] fields = entityClass.getDeclaredFields();
-				if(fields != null){
-					for (Field field : fields) {
-						set.add(field.getName());
-					}
-				}
-				// 得到父类,然后赋给自己
-			    entityClass = entityClass.getSuperclass();
+			if (entityClass == null || entityClass.getName().equalsIgnoreCase(BASE_PACKAGE_NAME)) {
+				return set;
 			}
-			//单独处理
-			if(entityClass.getName().toLowerCase().equals("cn.assist.easydao.pojo.basepojo")){
-				Field[] fields = entityClass.getDeclaredFields();
-				if(fields != null){
-					for (Field field : fields) {
-						set.add(field.getName());
-					}
-				}
+			while (entityClass != null) {
+				Set<String> nowSet = Arrays.stream(entityClass.getDeclaredFields()).filter(s -> s != null).map(Field::getName).collect(Collectors.toSet());
+				set.addAll(nowSet);
+				entityClass = entityClass.getSuperclass();
 			}
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			throw new DaoException("get instance fail",e);
+		}
 		return set;
 	}
 	
