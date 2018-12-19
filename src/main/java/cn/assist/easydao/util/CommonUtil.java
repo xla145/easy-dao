@@ -26,20 +26,36 @@ public class CommonUtil {
 
 
     public static void main(String[] args) {
-
-
         List<Integer> list = new ArrayList<>();
-
-
         list.add(4444);
-
         list.add(4444333);
-
-
         Conditions conn = new Conditions("id", SqlExpr.IN,2,4);
-
-
         System.out.println(conn.getConnSql() +"  ===  "+ StringUtils.join(conn.getConnParams().toArray(),","));
-//        System.out.println(getPlaceholderGroup(5));
     }
+
+    /**
+     * 判断数据是否是空
+     * @param params
+     * @return
+     */
+    public static boolean isEmpty(Object[] params) {
+        if (params == null || params.length == 0) {
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * 判断数据是否是空 转化
+     * @param params
+     * @return
+     */
+    public static boolean isNotEmpty(Object[] params) {
+        if (params != null && params.length > 0) {
+            return true;
+        }
+        return false;
+    }
+
 }

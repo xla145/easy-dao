@@ -6,6 +6,7 @@ import cn.assist.easydao.common.Conditions;
 import cn.assist.easydao.common.Sort;
 import cn.assist.easydao.pojo.BasePojo;
 import cn.assist.easydao.pojo.PagePojo;
+import cn.assist.easydao.pojo.RecordPojo;
 
 /**
  * 定义BaseDao接口--测试版
@@ -361,4 +362,38 @@ public interface IBaseDao{
 	 * @return
 	 */
 	 int delete(String sql, Object... params);
+
+
+	/**
+	 * 查询返回RecordPojo集
+	 * @param sql
+	 * @return
+	 */
+	RecordPojo query(String sql);
+
+	/**
+	 * 查询返回RecordPojo集
+	 * @param sql
+	 * @param params
+	 * @return
+	 */
+	RecordPojo query(String sql,Object... params);
+
+
+	/**
+	 * 返回RecordPojo 列表数据
+	 * @param sql
+	 * @return
+	 */
+	List<RecordPojo> queryList(String sql);
+
+
+	/**
+	 * 返回RecordPojo 列表数据
+	 * @param sql
+	 * @param params
+	 * @return
+	 */
+	List<RecordPojo> queryList(String sql,Object... params);
+
 }
