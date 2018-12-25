@@ -396,4 +396,7 @@ public interface IBaseDao{
 	 */
 	List<RecordPojo> queryList(String sql,Object... params);
 
+
+	PagePojo<RecordPojo> queryPage(String sql,List<Object> params,Integer pageNO,Integer pageSize);
+
 }

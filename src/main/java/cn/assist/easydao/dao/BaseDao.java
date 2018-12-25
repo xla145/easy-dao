@@ -417,6 +417,9 @@ public class BaseDao implements IBaseDao {
 
     @Override
     public <T extends BasePojo> PagePojo<T> queryForListPage(Class<T> entityClazz, Conditions conn, Sort sort, int pageNo, int pageSize) {
+        if (conn == null) {
+            conn = new Conditions();
+        }
         StringBuffer sql = new StringBuffer(this.selectMulti(entityClazz));
         if (StringUtils.isNotBlank(conn.getConnSql())) {
             sql.append(" where " + conn.getConnSql());
@@ -746,5 +749,39 @@ public class BaseDao implements IBaseDao {
             return  DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(sql,new ColumnRecordRowMapper());
         }
         return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(sql,params,new ColumnRecordRowMapper());
+    }
+
+
+    @Override
+    public PagePojo<RecordPojo> queryPage(String sql,List<Object> params,Integer pageNo,Integer pageSize) {
+        Object[] paramArr = null;
+        if (params != null && params.size() > 0) {
+            paramArr = params.toArray();
+        }
+        PagePojo<RecordPojo> page = new PagePojo<RecordPojo>();
+        pageSize = pageSize < 1 ? 10 : pageSize;
+        pageNo = pageNo < 2 ? 1 : pageNo;
+        int total = queryForInt("select count(*) from (" + sql + ") as tab_temp", paramArr);
+
+        page.setPageNo(pageNo);
+        page.setPageSize(pageSize);
+        page.setTotal(total);
+        page.setPageTotal((total + pageSize - 1) / pageSize);
+
+
+        sql += " limit " + ((pageNo - 1) * pageSize) + ", " + pageSize;
+
+        if (DataSourceHolder.dev) {
+            logger.info("sql:" + MessageFormat.format(sql, "\\?", paramArr));
+        }
+        ReturnKeyCreator creator = new ReturnKeyCreator(sql);
+        List<RecordPojo> list = new ArrayList<>();
+        if (params == null || params.size() < 1) {
+            list = DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), new ColumnRecordRowMapper());
+        } else {
+            list = DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), paramArr,new ColumnRecordRowMapper());
+        }
+        page.setPageData(list);
+        return page;
     }
 }

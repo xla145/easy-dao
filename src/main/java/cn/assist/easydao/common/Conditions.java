@@ -106,7 +106,7 @@ public class Conditions implements Serializable {
 							sqlBuffer.append(",");
 						}
 					} else {
-						throw new DaoException(new StringBuilder().append(getClass().getName()).append("params is only support String or Integer or Array").append(field).toString());
+						throw new DaoException(new StringBuilder().append(getClass().getName()).append("params is only support String or Integer or Array  ").append(field).toString());
 					}
 					sqlBuffer.append("?");
 				}
