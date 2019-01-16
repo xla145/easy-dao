@@ -1,21 +1,16 @@
 package cn.assist.easydao.common;
 
-import java.io.Serializable;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
 import cn.assist.easydao.exception.DaoException;
 import cn.assist.easydao.util.Inflector;
-import org.springframework.util.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 定义sql 条件 标点
- * 
+ *
  * @author caixb
  *
  */
@@ -30,18 +25,22 @@ public class Conditions implements Serializable {
 	public Conditions() {}
 
 	/**
-	 * 
+	 *
 	 * @param field
 	 *            对象属性名， 可为pojo对象属性名或者数据库字段名，即驼峰式属性名或者下划线字段名
 	 * @param sqlExpr
 	 *            表达式 SqlExpr
 	 * @param value
 	 *            当SqlExpr 为 in表达式的时候， val为可变参数， 可传入多个基本类型的值， 且支持传入基本类型数组， 会拆分为单项值
-	 *            
+	 *
 	 */
 	public Conditions(String field, SqlExpr sqlExpr, Object... value) throws DaoException {
 		if (sqlExpr == null) {
 			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" sqlExpr is null  ").append(field).toString());
+		}
+		// 参数为空值，直接返回
+		if (value.length == 1 && value[0] == null) {
+			return;
 		}
 		String expr = sqlExpr.toString();
 		field = field.trim();
@@ -73,22 +72,22 @@ public class Conditions implements Serializable {
 				if (value == null || value[0] == null || value.length != 1) {
 					throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  only support 1 params: ").append(expr).toString());
 				}
-				sqlBuffer.append(" " + expr + " %?");
-				connParams.add(value[0]);
+				sqlBuffer.append(" " + expr + " ?");
+				connParams.add("%" + value[0]);
 				break;
 			case RIGHT_LIKE:
 				if (value == null || value[0] == null || value.length != 1) {
 					throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  only support 1 params: ").append(expr).toString());
 				}
-				sqlBuffer.append(" " + expr + " ?%");
-				connParams.add(value[0]);
+				sqlBuffer.append(" " + expr + " ?");
+				connParams.add(value[0] + "%");
 				break;
 			case ALL_LIKE:
 				if (value == null || value[0] == null || value.length != 1) {
 					throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  only support 1 params: ").append(expr).toString());
 				}
-				sqlBuffer.append(" " + expr + " %?%");
-				connParams.add(value[0]);
+				sqlBuffer.append(" " + expr + " ?");
+				connParams.add("%" + value[0] + "%");
 				break;
 			case IN:
 				if (value == null || value.length < 1) {
@@ -148,7 +147,7 @@ public class Conditions implements Serializable {
 		 */
 		if (StringUtils.isEmpty(this.connSql)) {
 			this.connSql = String.format("%s", conn.getConnSql());
-		} else {
+		} else if (StringUtils.isNotEmpty(conn.getConnSql())) {
 			this.connSql = String.format("(%s %s %s)", this.connSql, joint, conn.getConnSql());
 		}
 

@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import cn.assist.easydao.common.Conditions;
 import cn.assist.easydao.dao.mapper.ColumnRecordRowMapper;
 import cn.assist.easydao.pojo.RecordPojo;
 import cn.assist.easydao.util.CommonUtil;
@@ -12,11 +13,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
-import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 
 import cn.assist.easydao.annotation.Id;
-import cn.assist.easydao.common.Conditions;
 import cn.assist.easydao.common.Sort;
 import cn.assist.easydao.common.SqlExpr;
 import cn.assist.easydao.dao.datasource.DataSourceHolder;
@@ -401,11 +400,11 @@ public class BaseDao implements IBaseDao {
             sql += " order by " + sort.getSortSql();
         }
         if (DataSourceHolder.dev) {
-            logger.info("sql:" + MessageFormat.format(sql.toString(), "\\?", params));
+            logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
         }
         SpringResultHandler<T> srh = new SpringResultHandler<T>(entityClazz);
 
-        ReturnKeyCreator creator = new ReturnKeyCreator(sql.toString());
+        ReturnKeyCreator creator = new ReturnKeyCreator(sql);
 
         if (params == null || params.length < 1) {
             DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), srh);

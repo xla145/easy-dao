@@ -10,6 +10,7 @@ import cn.assist.easydao.annotation.Temporary;
  * @author caixb
  *
  */
+
 public class BasePojo implements Serializable{
 	
 	@Temporary
