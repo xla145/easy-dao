@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>cn.assist</groupId>
 	<artifactId>easy-dao</artifactId>
-	<version>1.2.3</version>
+	<version>2.0.0</version>
 	<packaging>jar</packaging>
 	<name>easy-dao</name>
 	<url>http://maven.apache.org</url>
@@ -67,14 +67,23 @@
             <version>1.2.41</version>
             <scope>compile</scope>
         </dependency>
-    </dependencies>
+	</dependencies>
+
+	<!--&lt;!&ndash; 配置部署构建到私服 &ndash;&gt;-->
+	<!--<distributionManagement>-->
+		<!--<repository>-->
+			<!--<id>rdc-releases</id>-->
+			<!--<name>rdc-releases</name>-->
+			<!--<url>https://repo.rdc.aliyun.com/repository/37876-release-GbGOoG/</url>-->
+		<!--</repository>-->
+	<!--</distributionManagement>-->
 
 	<!-- 配置部署构建到私服 -->
 	<distributionManagement>
 		<repository>
-			<id>rdc-releases</id>
-			<name>rdc-releases</name>
-			<url>https://repo.rdc.aliyun.com/repository/37876-release-GbGOoG/</url>
+			<id>yue-releases</id>
+			<name>yue-releases</name>
+			<url>http://192.168.1.6:8081/nexus/content/repositories/releases/</url>
 		</repository>
 	</distributionManagement>
 

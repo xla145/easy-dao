@@ -191,7 +191,6 @@ public class BaseDao implements IBaseDao {
         return insertMulti(entitys, false);
     }
 
-
     @Override
     public <T extends BasePojo> int merge(T entity, String... params) {
         StringBuffer sql = new StringBuffer("insert into ");
@@ -517,74 +516,54 @@ public class BaseDao implements IBaseDao {
      * @return
      */
     private <T extends BasePojo> int insertMulti(List<T> entitys, boolean isReturnId) {
-        if (entitys == null || entitys.size() < 1) {
+        if(entitys == null || entitys.size() < 1){
             throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  The entitys name is not null ").toString());
         }
-        if (entitys.size() == 1) {
-            T t = entitys.get(0);
-            StringBuffer sql = new StringBuffer("insert into ");
-            StringBuffer insertFields = new StringBuffer();
-
-            PojoHelper pojoHelper = new PojoHelper(t);
-
-            sql.append(pojoHelper.getTableName()); //表名
-            StringBuffer insertValues = new StringBuffer();
-
-            //待插入字段<===>数据
-            Map<String, Object> validDatas = pojoHelper.validDataList();
-
-            //待插入参数
-            List<Object> paramList = new ArrayList<Object>();
-
-            Iterator<String> iterator = validDatas.keySet().iterator();
-
-            int flag = 0;
-            while (iterator.hasNext()) {
-                String fieldName = iterator.next();
-                if (flag > 0) {
-                    insertFields.append(", ");
-                    insertValues.append(", ");
-                }
-                insertFields.append("`" + fieldName + "`");
-                insertValues.append("?");
-                paramList.add(validDatas.get(fieldName));
-                flag++;
-            }
-            sql.append("(" + insertFields + ") ");
-            sql.append("values(" + insertValues + ") ");
-            return executeInsert(sql.toString(), paramList.toArray(), isReturnId);
-        }
-        // 批量插入，可能会存在第一条某字段有数据，第二条或者后者某字段数据为空
-
-        // 所以用第一条的字段（insertValues）做后面的字段信息（insertValues），会出现问题
-
-        // 处理上述问题，如果你批量插入的则统一使用validFieldList除临时的字段信息
-
+        T t = entitys.get(0);
         StringBuffer sql = new StringBuffer("insert into ");
         StringBuffer insertFields = new StringBuffer();
-        PojoHelper pojoHelper = new PojoHelper(entitys.get(0));
-        //表名
-        sql.append(pojoHelper.getTableName());
+
+        PojoHelper pojoHelper = new PojoHelper(t);
+
+        sql.append(pojoHelper.getTableName()); //表名
         StringBuffer insertValues = new StringBuffer();
-        List<String> validFiled = pojoHelper.validFieldList();
+
+        //待插入字段<===>数据
+        Map<String, Object> validDatas =  pojoHelper.validDataList();
+
         //待插入参数
         List<Object> paramList = new ArrayList<Object>();
-        insertFields.append(StringUtils.join(validFiled, ","));
-        insertValues.append(CommonUtil.getPlaceholderGroup(validFiled.size()));
-        sql.append("(" + insertFields + ") values ");
-        for (int i = 0; i < entitys.size(); i++) {
-            T extra = entitys.get(i);
-            pojoHelper = new PojoHelper(extra);
-            Map<String, Object> vds = pojoHelper.validDataList();
-            List<String> vfd = pojoHelper.validFieldList();
-            vfd.stream().forEach(s -> paramList.add(vds.get(s)));
-            // 批量插入，可能会存在第一条某字段有数据，第二条或者后者某字段数据为空，所以对于这个验证意义不大
-//				if(extraParams.size() != validDatas.size()){
-//					throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  list size is not consistent！").toString());
-//				}
-            sql.append("(" + insertValues + "),");
+
+        Iterator<String> iterator = validDatas.keySet().iterator();
+        int flag = 0;
+        while (iterator.hasNext()) {
+            String fieldName = iterator.next();
+            if (flag > 0){
+                insertFields.append(", ");
+                insertValues.append(", ");
+            }
+            insertFields.append("`" + fieldName + "`");
+            insertValues.append("?");
+            paramList.add(validDatas.get(fieldName));
+            flag++;
         }
-        return executeInsert(sql.deleteCharAt(sql.length() - 1).toString(), paramList.toArray(), isReturnId);
+        sql.append("(" + insertFields + ") ");
+        sql.append("values(" + insertValues + ") ");
+
+        if(entitys.size() > 1){
+            for (int i = 1; i < entitys.size(); i++) {
+                T extra = entitys.get(i);
+                pojoHelper = new PojoHelper(extra);
+                Map<String, Object> vds =  pojoHelper.validDataList();
+                List<Object> extraParams = vds.entrySet().stream().map(Map.Entry::getValue).filter(s -> s != null).collect(Collectors.toList());
+                if(extraParams.size() != validDatas.size()){
+                    throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  list size is not consistent！").toString());
+                }
+                sql.append(",(" + insertValues + ")");
+                paramList.addAll(extraParams);
+            }
+        }
+        return executeInsert(sql.toString(), paramList.toArray(), isReturnId);
     }
 
     /**
