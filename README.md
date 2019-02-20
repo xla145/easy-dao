@@ -19,7 +19,8 @@
 #### 项目使用
  在springBoot环境下使用easy-dao项目
  
- 首先需要创建数据源，例子中我们创建了beanName为dataSourceOne 数据源     
+ 首先需要创建数据源，例子中我们创建了beanName为dataSourceOne 数据源    
+  
     /**
      * 使用 easy-dao
      * @return
