@@ -70,21 +70,21 @@
 	</dependencies>
 
 	<!--&lt;!&ndash; 配置部署构建到私服 &ndash;&gt;-->
-	<!--<distributionManagement>-->
-		<!--<repository>-->
-			<!--<id>rdc-releases</id>-->
-			<!--<name>rdc-releases</name>-->
-			<!--<url>https://repo.rdc.aliyun.com/repository/37876-release-GbGOoG/</url>-->
-		<!--</repository>-->
-	<!--</distributionManagement>-->
-
-	<!-- 配置部署构建到私服 -->
 	<distributionManagement>
 		<repository>
-			<id>yue-releases</id>
-			<name>yue-releases</name>
-			<url>http://192.168.1.6:8081/nexus/content/repositories/releases/</url>
+			<id>rdc-releases</id>
+			<name>rdc-releases</name>
+			<url>https://repo.rdc.aliyun.com/repository/37876-release-GbGOoG/</url>
 		</repository>
 	</distributionManagement>
+
+	<!-- 配置部署构建到私服 -->
+	<!--<distributionManagement>-->
+		<!--<repository>-->
+			<!--<id>yue-releases</id>-->
+			<!--<name>yue-releases</name>-->
+			<!--<url>http://192.168.1.6:8081/nexus/content/repositories/releases/</url>-->
+		<!--</repository>-->
+	<!--</distributionManagement>-->
 
 </project>
