@@ -67,6 +67,11 @@
             <version>1.2.41</version>
             <scope>compile</scope>
         </dependency>
+		<dependency>
+			<groupId>com.esotericsoftware</groupId>
+			<artifactId>reflectasm</artifactId>
+			<version>1.11.7</version>
+		</dependency>
 	</dependencies>
 
 	<!--&lt;!&ndash; 配置部署构建到私服 &ndash;&gt;-->

@@ -24,10 +24,12 @@ public class SpringResultHandler<T> implements RowCallbackHandler {
 
 	private Class<T> entityClass;
 	private List<T> dataList;
+	private Set<String> fields;
 
 	public SpringResultHandler(Class<T> entityClass) {
 		this.entityClass = entityClass;
 		this.dataList = new ArrayList<>();
+		this.fields = getFields(entityClass);
 	}
 
 	private static String BASE_PACKAGE_NAME = "cn.assist.easydao.pojo.basepojo";
@@ -41,7 +43,7 @@ public class SpringResultHandler<T> implements RowCallbackHandler {
 			e1.printStackTrace();
 		}
 		
-		Set<String> fields = getFields(rsEntity.getClass());
+		Set<String> fields = this.fields;
 		Inflector inf = Inflector.getInstance();
 		
 		try {
@@ -72,7 +74,7 @@ public class SpringResultHandler<T> implements RowCallbackHandler {
 		
 		Set<String> set = new HashSet<>();
 		try {
-			Class<?> entityClass = clazz.newInstance().getClass();
+			Class<?> entityClass = clazz;
 			if (entityClass == null || entityClass.getName().equalsIgnoreCase(BASE_PACKAGE_NAME)) {
 				return set;
 			}
@@ -96,4 +98,11 @@ public class SpringResultHandler<T> implements RowCallbackHandler {
 		this.dataList = dataList;
 	}
 
+	public Class<T> getEntityClass() {
+		return entityClass;
+	}
+
+	public void setEntityClass(Class<T> entityClass) {
+		this.entityClass = entityClass;
+	}
 }
