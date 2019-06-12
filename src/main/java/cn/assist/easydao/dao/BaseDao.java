@@ -1,33 +1,33 @@
 package cn.assist.easydao.dao;
 
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import cn.assist.easydao.common.Conditions;
-import cn.assist.easydao.dao.mapper.ColumnRecordRowMapper;
-import cn.assist.easydao.pojo.RecordPojo;
-import cn.assist.easydao.util.CommonUtil;
-import cn.assist.easydao.util.Inflector;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
-import org.springframework.jdbc.core.PreparedStatementSetter;
-
 import cn.assist.easydao.annotation.Id;
+import cn.assist.easydao.common.Conditions;
 import cn.assist.easydao.common.Sort;
 import cn.assist.easydao.common.SqlExpr;
 import cn.assist.easydao.dao.datasource.DataSourceHolder;
+import cn.assist.easydao.dao.mapper.ColumnRecordRowMapper;
 import cn.assist.easydao.dao.sqlcreator.ReturnKeyCreator;
 import cn.assist.easydao.dao.sqlcreator.ReturnKeysCallback;
 import cn.assist.easydao.dao.sqlcreator.SpringResultHandler;
 import cn.assist.easydao.exception.DaoException;
 import cn.assist.easydao.pojo.BasePojo;
 import cn.assist.easydao.pojo.PagePojo;
+import cn.assist.easydao.pojo.RecordPojo;
+import cn.assist.easydao.util.CommonUtil;
+import cn.assist.easydao.util.Inflector;
 import cn.assist.easydao.util.MessageFormat;
 import cn.assist.easydao.util.PojoHelper;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.util.CollectionUtils;
+
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * 封装常用数据库操作方法--测试版
@@ -265,9 +265,9 @@ public class BaseDao implements IBaseDao {
 
         ReturnKeyCreator creator = new ReturnKeyCreator(sql);
         if (params == null || params.length < 1) {
-            return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForObject(creator.getSql(), Integer.class);
+            return getJdbcTemplate().queryForObject(creator.getSql(), Integer.class);
         }
-        return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForObject(creator.getSql(), Integer.class, params);
+        return getJdbcTemplate().queryForObject(creator.getSql(), Integer.class, params);
     }
 
     @Override
@@ -291,11 +291,15 @@ public class BaseDao implements IBaseDao {
 
     @Override
     public List<Map<String, Object>> queryForListMap(String sql) {
+
         return queryForListMapMulti(sql, null);
     }
 
     @Override
     public List<Map<String, Object>> queryForListMap(String sql, Object... params) {
+        if (params.length == 1 && params[0] instanceof List) {
+            throw new DaoException(new StringBuilder().append(getClass().getName()).append(" : object do not support List type").toString());
+        }
         return queryForListMapMulti(sql, params);
     }
 
@@ -306,9 +310,9 @@ public class BaseDao implements IBaseDao {
         ReturnKeyCreator creator = new ReturnKeyCreator(sql);
 
         if (params == null || params.length < 1) {
-            return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForList(creator.getSql());
+            return getJdbcTemplate().queryForList(creator.getSql());
         }
-        return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForList(creator.getSql(), params);
+        return getJdbcTemplate().queryForList(creator.getSql(), params);
     }
 
 
@@ -406,9 +410,9 @@ public class BaseDao implements IBaseDao {
         ReturnKeyCreator creator = new ReturnKeyCreator(sql);
 
         if (params == null || params.length < 1) {
-            DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), srh);
+            getJdbcTemplate().query(creator.getSql(), srh);
         } else {
-            DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), srh, params);
+            getJdbcTemplate().query(creator.getSql(), srh, params);
         }
         return srh.getDataList();
     }
@@ -454,9 +458,9 @@ public class BaseDao implements IBaseDao {
         ReturnKeyCreator creator = new ReturnKeyCreator(sql.toString());
 
         if (params == null || params.size() < 1) {
-            DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), srh);
+            getJdbcTemplate().query(creator.getSql(), srh);
         } else {
-            DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), srh, paramArr);
+            getJdbcTemplate().query(creator.getSql(), srh, paramArr);
         }
         page.setPageData(srh.getDataList());
 
@@ -468,9 +472,22 @@ public class BaseDao implements IBaseDao {
         if (DataSourceHolder.dev) {
             logger.info("sql:" + sql);
         }
-        return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).update(sql, params);
+        return getJdbcTemplate().update(sql, params);
     }
 
+    @Override
+    public <T extends BasePojo> int delete(T entity) {
+        PojoHelper pojoHelper = new PojoHelper(entity);
+        String tableName = pojoHelper.getTableName(); //table name
+        String pkName = pojoHelper.getPkName(Id.class); // primary key name
+        Object pkValue = pojoHelper.getPkValue(pkName); // primary key
+        if (pkValue == null) {
+            throw new DaoException(new StringBuilder().append(getClass().getName()).append(" : the primary key is null").toString());
+        }
+        StringBuffer sql = new StringBuffer();
+        sql.append("DELETE FROM "+ tableName + " WHERE "+ pkName +" = ? ");
+        return delete(sql.toString(),pkValue);
+    }
 
     /**
      * 解析查询sql
@@ -624,9 +641,10 @@ public class BaseDao implements IBaseDao {
         }
         ReturnKeyCreator creator = new ReturnKeyCreator(sql);
         if (params == null || params.length < 1) {
-            return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).update(sql);
+            Integer i = getJdbcTemplate().update(sql);
+            return i;
         }
-        return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).update(creator.getSql(), params);
+        return getJdbcTemplate().update(creator.getSql(), params);
     }
 
     /**
@@ -647,10 +665,10 @@ public class BaseDao implements IBaseDao {
 
         ReturnKeyCreator creator = new ReturnKeyCreator(sql);
         if (params == null || params.length < 1) {
-            return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).update(sql);
+            return getJdbcTemplate().update(sql);
         }
 
-        return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).update(creator.getSql(), params);
+        return getJdbcTemplate().update(creator.getSql(), params);
     }
 
     /**
@@ -666,7 +684,7 @@ public class BaseDao implements IBaseDao {
         if (params != null && params.length > 0) {
             pss = new ArgumentPreparedStatementSetter(params);
         }
-        Integer id = DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).execute(creator, new ReturnKeysCallback<Integer>(pss));
+        Integer id = getJdbcTemplate().execute(creator, new ReturnKeysCallback<Integer>(pss));
         if (id == null) {
             return -1;
         }
@@ -696,9 +714,9 @@ public class BaseDao implements IBaseDao {
             logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
         }
         if (CommonUtil.isEmpty(params)) {
-            return  DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForObject(sql,new ColumnRecordRowMapper());
+            return  getJdbcTemplate().queryForObject(sql,new ColumnRecordRowMapper());
         }
-        return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).queryForObject(sql,params,new ColumnRecordRowMapper());
+        return getJdbcTemplate().queryForObject(sql,params,new ColumnRecordRowMapper());
     }
 
 
@@ -724,9 +742,9 @@ public class BaseDao implements IBaseDao {
             logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
         }
         if (CommonUtil.isEmpty(params)) {
-            return  DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(sql,new ColumnRecordRowMapper());
+            return  getJdbcTemplate().query(sql,new ColumnRecordRowMapper());
         }
-        return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(sql,params,new ColumnRecordRowMapper());
+        return getJdbcTemplate().query(sql,params,new ColumnRecordRowMapper());
     }
 
 
@@ -755,11 +773,16 @@ public class BaseDao implements IBaseDao {
         ReturnKeyCreator creator = new ReturnKeyCreator(sql);
         List<RecordPojo> list = new ArrayList<>();
         if (params == null || params.size() < 1) {
-            list = DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), new ColumnRecordRowMapper());
+            list = getJdbcTemplate().query(creator.getSql(), new ColumnRecordRowMapper());
         } else {
-            list = DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName).query(creator.getSql(), paramArr,new ColumnRecordRowMapper());
+            list = getJdbcTemplate().query(creator.getSql(), paramArr,new ColumnRecordRowMapper());
         }
         page.setPageData(list);
         return page;
+    }
+
+    @Override
+    public JdbcTemplate getJdbcTemplate() {
+        return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName);
     }
 }
