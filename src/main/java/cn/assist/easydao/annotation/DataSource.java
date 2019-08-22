@@ -9,12 +9,17 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * 通过注解的方式切换数据源
- * @author caixb
+ * @author xula
  *
  */
 @Target(METHOD)
 @Retention(RUNTIME)
 @Documented
 public @interface DataSource {
+
+    /**
+     * 数据源名称
+     * @return 名称
+     */
     String value() default "";
 }

@@ -7,7 +7,7 @@ import java.util.List;
  * 分页组件--测试版
  * 
  * @version 1.0.0
- * @author caixb
+ * @author xula
  */
 public class PagePojo<T> implements Serializable {
 	

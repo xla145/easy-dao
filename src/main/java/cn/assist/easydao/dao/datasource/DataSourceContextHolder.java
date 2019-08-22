@@ -21,7 +21,7 @@ public class DataSourceContextHolder {
 
     /**
      * 获取数据源类型
-     * @return
+     * @return 数据源类型
      */
     public static String getDbType() {
         return (contextHolder.get());

@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * 3、事务支持（同一数据源事务、不同数据源事务）
  * 4、支持嵌入其他框架
  *
- * @author caixb
+ * @author xula
  * @version 1.8.0
  */
 public class BaseDao implements IBaseDao {
@@ -49,6 +49,11 @@ public class BaseDao implements IBaseDao {
 
     public static BaseDao dao = new BaseDao();
 
+    /**
+     * 使用数据源
+     * @param dataSourceName 数据源名称
+     * @return BaseDao
+     */
     public static BaseDao use(String dataSourceName) {
         return new BaseDao(dataSourceName);
     }
@@ -112,7 +117,7 @@ public class BaseDao implements IBaseDao {
         //更新条件
         if (conn == null || StringUtils.isBlank(conn.getConnSql())) {
             if (StringUtils.isBlank(pkName)) {
-                throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  Do not specify a primary key constraint:Reference：Add the annotation ").append(Id.class.getClass()).toString());
+                throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  Do not specify a primary key constraint:Reference：Add the base ").append(Id.class.getClass()).toString());
             }
             conn = new Conditions(pkName, SqlExpr.EQUAL, pkValue);
         }
@@ -694,8 +699,8 @@ public class BaseDao implements IBaseDao {
 
     /**
      *
-     * @param sql
-     * @return
+     * @param sql sql语句
+     * @return 返回RecordPojo对象
      */
     @Override
     public RecordPojo query(String sql) {
@@ -704,9 +709,9 @@ public class BaseDao implements IBaseDao {
 
     /**
      *
-     * @param sql
-     * @param params
-     * @return
+     * @param sql sql语句
+     * @param params 参数
+     * @return 返回RecordPojo对象
      */
     @Override
     public RecordPojo query(String sql, Object... params) {
@@ -722,8 +727,8 @@ public class BaseDao implements IBaseDao {
 
     /**
      * 获取RecordPojo 列表
-     * @param sql
-     * @return
+     * @param sql sql语句
+     * @return 返回RecordPojo列表
      */
     @Override
     public List<RecordPojo> queryList(String sql) {
@@ -732,9 +737,9 @@ public class BaseDao implements IBaseDao {
 
     /**
      * 获取RecordPojo 列表
-     * @param sql
-     * @param params
-     * @return
+     * @param sql sql语句
+     * @param params 参数
+     * @return 返回RecordPojo列表
      */
     @Override
     public List<RecordPojo> queryList(String sql, Object... params) {
@@ -748,6 +753,14 @@ public class BaseDao implements IBaseDao {
     }
 
 
+    /**
+     *
+     * @param sql 执行的sql语句
+     * @param params 参数
+     * @param pageNo 页码
+     * @param pageSize 每页显示的条数
+     * @return 返回分页结果
+     */
     @Override
     public PagePojo<RecordPojo> queryPage(String sql,List<Object> params,Integer pageNo,Integer pageSize) {
         Object[] paramArr = null;
@@ -781,6 +794,10 @@ public class BaseDao implements IBaseDao {
         return page;
     }
 
+    /**
+     *
+     * @return 返回 JdbcTemplate对象
+     */
     @Override
     public JdbcTemplate getJdbcTemplate() {
         return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName);

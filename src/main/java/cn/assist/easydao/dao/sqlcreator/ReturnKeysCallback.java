@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.PreparedStatementSetter;
 /**
  * 获取并返回insert数据的数据库自增唯一索引
  * 
- * @author caixb
+ * @author xula
  *
  * @param <T>
  */

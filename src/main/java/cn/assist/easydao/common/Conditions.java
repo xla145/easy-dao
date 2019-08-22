@@ -5,20 +5,29 @@ import cn.assist.easydao.util.Inflector;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
  * 定义sql 条件 标点
  *
- * @author caixb
+ * @author xula
  *
  */
 public class Conditions implements Serializable {
 
+	/**
+	 * sql
+	 */
 	private String connSql = "";
 
+	/**
+	 * 参数
+	 */
 	private List<Object> connParams = new ArrayList<Object>();
+
 
 	private static final String POINT = ".";
 
@@ -99,15 +108,27 @@ public class Conditions implements Serializable {
 					if (val == null) {
 						continue;
 					}
-					if (val instanceof  String || val instanceof Integer) {
+					if (val.getClass().isArray()) {
+						int len = Array.getLength(val);
+						for (int x = 0; x < len; x++) {
+							Object o = Array.get(val, x);
+							if (o != null) {
+								connParams.add(o);
+								if (i > 0 || x > 0) {
+									sqlBuffer.append(",");
+								}
+								sqlBuffer.append("?");
+							}
+						}
+					} else if (val instanceof  String || val instanceof Integer) {
 						connParams.add(val);
 						if (i > 0) {
 							sqlBuffer.append(",");
 						}
+						sqlBuffer.append("?");
 					} else {
-						throw new DaoException(new StringBuilder().append(getClass().getName()).append("params is only support String or Integer or Array  ").append(field).toString());
+						throw new DaoException(new StringBuilder().append(getClass().getName()).append("params is only support String or Integer or Array  ").append(field).append(val.getClass()).toString());
 					}
-					sqlBuffer.append("?");
 				}
 				sqlBuffer.append(")");
 				break;
@@ -134,8 +155,8 @@ public class Conditions implements Serializable {
 
 	/**
 	 * 添加筛选添加
-	 * @param conn
-	 * @param sqlJoin
+	 * @param conn 筛选条件
+	 * @param sqlJoin 连接符
 	 */
 	public void add(Conditions conn, SqlJoin sqlJoin) {
 		if (sqlJoin == null) {

@@ -64,6 +64,7 @@ public class ColumnRecordRowMapper implements RowMapper<RecordPojo> {
      * @param index is the column index
      * @return the Object returned
      * @see org.springframework.jdbc.support.JdbcUtils#getResultSetValue
+     * @throws SQLException
      */
     protected Object getColumnValue(ResultSet rs, int index) throws SQLException {
         return JdbcUtils.getResultSetValue(rs, index);

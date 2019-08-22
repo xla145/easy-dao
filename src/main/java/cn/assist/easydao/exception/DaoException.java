@@ -4,7 +4,7 @@ package cn.assist.easydao.exception;
  * 
  * 自定义异常
  * 
- * @author caixb
+ * @author xula
  *
  */
 public class DaoException extends RuntimeException {

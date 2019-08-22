@@ -5,7 +5,7 @@ import org.apache.commons.lang.StringUtils;
 /**
  * 格式化字符串
  * 
- * @author caixb
+ * @author xula
  *
  */
 public class MessageFormat {

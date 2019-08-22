@@ -15,7 +15,7 @@ import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
  * 数据源 持有者 -- 测试版
  * 
  * @version 1.8.0
- * @author caixb
+ * @author xula
  *
  */
 public class DataSourceHolder extends AbstractRoutingDataSource implements ApplicationContextAware {
@@ -35,7 +35,7 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 	
 	/**
 	 * 为了兼容历史版本
-	 * @param dataSource
+	 * @param dataSource 数据源
 	 */
 	public void setDataSource(DataSource dataSource) {
 		Map<Object, Object> targetDataSources = new HashMap<Object, Object>();
@@ -47,8 +47,8 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 	/**
 	 * 获取JdbcTemplate 
 	 * 
-	 * @param lookupKey
-	 * @return
+	 * @param lookupKey 数据源名称
+	 * @return JdbcTemplate
 	 */
 	public JdbcTemplate getJdbcTemplate(String lookupKey) {
 		setCurrentLookupKey(lookupKey);
@@ -66,7 +66,8 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 	public void setApplicationContext(ApplicationContext context) {
 		this.context = context;
 	}
-	
+
+
 	@Override
 	protected Object determineCurrentLookupKey() {
 		/**
@@ -89,7 +90,7 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 
 	/**
 	 * 设置当前的数据源
-	 * @return
+	 * @return 数据源名称
 	 */
 	public String getCurrentLookupKey() {
 		return currentLookupKey;

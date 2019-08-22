@@ -7,7 +7,7 @@ import cn.assist.easydao.annotation.Temporary;
  * 限定 pojo -- 测试版 
  * 
  * @version 1.0.0
- * @author caixb
+ * @author xula
  *
  */
 

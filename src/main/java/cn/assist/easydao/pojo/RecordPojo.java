@@ -27,8 +27,8 @@ public class RecordPojo implements Serializable {
 
     /**
      * Set columns value with map.
-     * @param columns
-     * @return
+     * @param columns 列对象信息
+     * @return RecordPojo
      */
     public RecordPojo setColumns(Map<String, Object> columns) {
         this.getColumns().putAll(columns);
@@ -38,6 +38,7 @@ public class RecordPojo implements Serializable {
     /**
      * Remove attribute of this RecordPojo.
      * @param column the column name of the RecordPojo
+     * @return RecordPojo
      */
     public RecordPojo remove(String column) {
         getColumns().remove(column);
@@ -48,6 +49,7 @@ public class RecordPojo implements Serializable {
     /**
      * Remove columns of this record.
      * @param columns the column names of the record
+     * @return RecordPojo
      */
     public RecordPojo remove(String... columns) {
         if (columns == null) {
@@ -109,6 +111,8 @@ public class RecordPojo implements Serializable {
 
     /**
      * Get column of mysql type: int, integer, tinyint(n) n > 1, smallint, mediumint
+     * @param column 列名
+     * @return 整型数据
      */
     public Integer getInt(String column) {
         Number n = getNumber(column);

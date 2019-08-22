@@ -9,7 +9,7 @@ import org.springframework.util.Assert;
 /**
  * 预编译sql
  * 
- * @author caixb
+ * @author xula
  *
  */
 public class ReturnKeyCreator implements PreparedStatementCreator, SqlProvider {

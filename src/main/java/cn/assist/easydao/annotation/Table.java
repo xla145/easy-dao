@@ -14,7 +14,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * 标识bojo类对应数据库的表名
  * 
  * 
- * @author caixb
+ * @author xula
  *
  */
 @Target(TYPE)
@@ -25,7 +25,7 @@ public @interface Table {
 
     /**
      * 表名
-     * @return
+     * @return name
      */
     String name() ;
 }  

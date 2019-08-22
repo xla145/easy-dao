@@ -16,7 +16,7 @@ import cn.assist.easydao.util.Inflector;
 /**
  * 查询映射结果集到entity
  * 
- * @author caixb
+ * @author xula
  *
  * @param <T>
  */

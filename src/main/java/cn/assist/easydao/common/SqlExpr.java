@@ -3,7 +3,7 @@ package cn.assist.easydao.common;
 /**
  * sql常用表达式
  * 
- * @author caixb
+ * @author xula
  *
  */
 public enum SqlExpr {

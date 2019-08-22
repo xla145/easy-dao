@@ -10,12 +10,17 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * 标识字段为数据自增索引
  * 
  * 
- * @author caixb
+ * @author xula
  *
  */
 @Retention (RUNTIME)
 @Target (FIELD)
-public @interface Id {  
+public @interface Id {
+
+    /**
+     * 名称
+     * @return name
+     */
     String name() default "";
     
 }  

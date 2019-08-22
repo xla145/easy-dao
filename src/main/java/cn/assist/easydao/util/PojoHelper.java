@@ -22,7 +22,7 @@ import cn.assist.easydao.pojo.BasePojo;
 /**
  * pojo 操作
  * 
- * @author caixb
+ * @author xula
  *
  */
 public class PojoHelper {

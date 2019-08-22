@@ -1,95 +1,191 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>cn.assist</groupId>
-	<artifactId>easy-dao</artifactId>
-	<version>2.0.0</version>
-	<packaging>jar</packaging>
-	<name>easy-dao</name>
-	<url>http://maven.apache.org</url>
-	<description>easy-dao</description>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>cn.assist</groupId>
+    <artifactId>easy-dao</artifactId>
+    <version>2.0.1</version>
+    <packaging>jar</packaging>
+    <name>easy-dao</name>
+    <url>https://github.com/xla145/easy-dao/</url>
+    <description>easy-dao</description>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.8.2</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.6</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils</artifactId>
-			<version>1.9.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jdbc</artifactId>
-			<version>4.3.18.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-			<version>4.3.18.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<version>4.3.18.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
-			<version>4.3.18.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aop</artifactId>
-			<version>4.3.18.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>23.0</version>
-		</dependency>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.9.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>4.3.18.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>4.3.18.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>4.3.18.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>4.3.18.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <version>4.3.18.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>23.0</version>
+        </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.41</version>
             <scope>compile</scope>
         </dependency>
-		<dependency>
-			<groupId>com.esotericsoftware</groupId>
-			<artifactId>reflectasm</artifactId>
-			<version>1.11.7</version>
-		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>reflectasm</artifactId>
+            <version>1.11.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>4.3.18.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
-	<!--&lt;!&ndash; 配置部署构建到私服 &ndash;&gt;-->
-	<distributionManagement>
-		<repository>
-			<id>rdc-releases</id>
-			<name>rdc-releases</name>
-			<url>https://repo.rdc.aliyun.com/repository/37876-release-GbGOoG/</url>
-		</repository>
-	</distributionManagement>
+    <build>
+        <plugins>
+            <!--Compiler-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <!-- Source -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Javadoc -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam><!-- 添加这个压制JavaDoc检查 -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- GPG mvn clean deploy -P release -Dgpg.passphrase=YourPassphase -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
-	<!-- 配置部署构建到私服 -->
-	<!--<distributionManagement>-->
-		<!--<repository>-->
-			<!--<id>yue-releases</id>-->
-			<!--<name>yue-releases</name>-->
-			<!--<url>http://192.168.1.6:8081/nexus/content/repositories/releases/</url>-->
-		<!--</repository>-->
-	<!--</distributionManagement>-->
+        </plugins>
+    </build>
+
+
+    <!--<developers>-->
+        <!--<developer>-->
+            <!--<name>xula</name>-->
+            <!--<email>xuliandream@gmail.com</email>-->
+            <!--<organization>xula</organization>-->
+            <!--<url>https://github.com/xla145</url>-->
+        <!--</developer>-->
+    <!--</developers>-->
+
+    <!--<licenses>-->
+        <!--<license>-->
+            <!--<name>The Apache Software License, Version 2.0</name>-->
+            <!--<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>-->
+            <!--<distribution>repo,manual</distribution>-->
+        <!--</license>-->
+    <!--</licenses>-->
+
+    <!--<scm>-->
+        <!--<connection>scm:git:https://github.com/xla145/easy-dao.git</connection>-->
+        <!--<developerConnection>scm:git:https://github.com/xla145/easy-dao.git</developerConnection>-->
+        <!--<url>https://github.com/xla145/easy-dao/</url>-->
+        <!--<tag>2.0.0</tag>-->
+    <!--</scm>-->
+
+    <!--<distributionManagement>-->
+    <!--<snapshotRepository>-->
+    <!--<id>oss</id>-->
+    <!--<url>https://oss.sonatype.org/content/repositories/snapshots/</url>-->
+    <!--</snapshotRepository>-->
+    <!--<repository>-->
+    <!--<id>oss</id>-->
+    <!--<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
+    <!--</repository>-->
+    <!--</distributionManagement>-->
+
+    <!-- 配置部署构建到私服 -->
+    <distributionManagement>
+        <repository>
+            <id>3rdParty</id>
+            <url>http://192.168.110.240:9091/repository/3rdParty/</url>
+            <name>3rdParty</name>
+        </repository>
+    </distributionManagement>
 
 </project>

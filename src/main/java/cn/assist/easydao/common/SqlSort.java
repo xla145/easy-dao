@@ -3,7 +3,7 @@ package cn.assist.easydao.common;
 /**
  * sql 排序表达式
  * 
- * @author caixb
+ * @author xula
  *
  */
 public enum SqlSort{

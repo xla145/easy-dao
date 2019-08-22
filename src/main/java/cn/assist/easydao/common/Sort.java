@@ -7,7 +7,7 @@ import org.apache.commons.lang.StringUtils;
 /**
  * 定义 结果排序
  * 
- * @author caixb
+ * @author xula
  *
  */
 public class Sort {
@@ -31,7 +31,10 @@ public class Sort {
 		sqlBuffer.append(" " + expr);
 		this.sortSql = sqlBuffer.toString();
 	}
-	
+
+	/**
+	 * @param sort 排序对象
+	 */
 	public void add(Sort sort){
 		StringBuffer sql = new StringBuffer(this.sortSql);
 		sql.append("," + sort.getSortSql());
