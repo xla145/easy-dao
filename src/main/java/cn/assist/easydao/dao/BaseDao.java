@@ -10,6 +10,8 @@ import cn.assist.easydao.dao.sqlcreator.ReturnKeyCreator;
 import cn.assist.easydao.dao.sqlcreator.ReturnKeysCallback;
 import cn.assist.easydao.dao.sqlcreator.SpringResultHandler;
 import cn.assist.easydao.exception.DaoException;
+import cn.assist.easydao.plugin.dialect.Dialect;
+import cn.assist.easydao.plugin.dialect.MysqlDialect;
 import cn.assist.easydao.pojo.BasePojo;
 import cn.assist.easydao.pojo.PagePojo;
 import cn.assist.easydao.pojo.RecordPojo;
@@ -48,6 +50,7 @@ public class BaseDao implements IBaseDao {
     private String dataSourceName;
 
     public static BaseDao dao = new BaseDao();
+
 
     /**
      * 使用数据源
@@ -142,11 +145,11 @@ public class BaseDao implements IBaseDao {
 
     @Override
     public <T extends BasePojo> int update(Class<T> entityClazz, Conditions conn, Map<String, Object> param) {
-        if (param == null || param.entrySet().size() == 0) {
+        if (param == null || param.size() == 0) {
             throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  The param is not null ").toString());
         }
         // 条件不能为空
-        if (conn == null || StringUtils.isNotBlank(conn.getConnSql()) || CollectionUtils.isEmpty(conn.getConnParams())) {
+        if (conn == null || StringUtils.isEmpty(conn.getConnSql()) || CollectionUtils.isEmpty(conn.getConnParams())) {
             throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  The conn is not null ").toString());
         }
         PojoHelper pojoHelper = null;
@@ -154,23 +157,18 @@ public class BaseDao implements IBaseDao {
         String tableName = "";
         try {
             pojoHelper = new PojoHelper(entityClazz.newInstance());
-            tableName = pojoHelper.getTableName(); //表名
+            tableName = pojoHelper.getTableName(); //表名 发生
         } catch (Exception e) {
             e.printStackTrace();
+            throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  happen exception").append(e.getMessage()).append(" where get tabla name ").toString());
         }
-        if (StringUtils.isBlank(tableName)) {
+        if (StringUtils.isNotEmpty(tableName)) {
             throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  The table name is not null ").toString());
         }
-        StringBuffer sql = new StringBuffer("update " + tableName + " set ");
+        Dialect dialect = getDialect();
+        StringBuffer sql = new StringBuffer();
         List<Object> paramList = new ArrayList<>();
-        param.entrySet().stream().forEach(s -> {
-            sql.append("`" + s.getKey() + "` = ?,");
-            paramList.add(s.getValue());
-        });
-        // 去除多余的逗号
-        sql.deleteCharAt(sql.length() - 1);
-        sql.append(" where " + conn.getConnSql());
-        paramList.addAll(conn.getConnParams());
+        dialect.forDbUpdate(tableName,param,conn,sql,paramList);
         return executeUpdate(sql.toString(), paramList.toArray());
     }
 
@@ -267,7 +265,6 @@ public class BaseDao implements IBaseDao {
         if (DataSourceHolder.dev) {
             logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
         }
-
         ReturnKeyCreator creator = new ReturnKeyCreator(sql);
         if (params == null || params.length < 1) {
             return getJdbcTemplate().queryForObject(creator.getSql(), Integer.class);
@@ -436,6 +433,7 @@ public class BaseDao implements IBaseDao {
 
     @Override
     public <T extends BasePojo> PagePojo<T> queryForListPage(Class<T> entityClazz, String sql, List<Object> params, Sort sort, int pageNo, int pageSize) {
+        StringBuffer newSql = new StringBuffer(sql);
         Object[] paramArr = null;
         if (params != null && params.size() > 0) {
             paramArr = params.toArray();
@@ -451,16 +449,16 @@ public class BaseDao implements IBaseDao {
         page.setPageTotal((total + pageSize - 1) / pageSize);
 
         if (sort != null) {
-            sql += " order by " + sort.getSortSql();
+            newSql.append(" order by " + sort.getSortSql());
         }
-        sql += " limit " + ((pageNo - 1) * pageSize) + ", " + pageSize;
-
+        getDialect().forPaginate(pageNo,pageSize,newSql);
+//        sql += " limit " + ((pageNo - 1) * pageSize) + ", " + pageSize;
         if (DataSourceHolder.dev) {
-            logger.info("sql:" + MessageFormat.format(sql, "\\?", paramArr));
+            logger.info("sql:" + MessageFormat.format(newSql.toString(), "\\?", paramArr));
         }
         SpringResultHandler<T> srh = new SpringResultHandler<T>(entityClazz);
 
-        ReturnKeyCreator creator = new ReturnKeyCreator(sql.toString());
+        ReturnKeyCreator creator = new ReturnKeyCreator(newSql.toString());
 
         if (params == null || params.size() < 1) {
             getJdbcTemplate().query(creator.getSql(), srh);
@@ -509,19 +507,10 @@ public class BaseDao implements IBaseDao {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         if (StringUtils.isBlank(tableName)) {
             throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  The table name is not null ").toString());
         }
-
-        List<String> fields = pojoHelper.validFieldList();
-        for (int i = 0; i < fields.size(); i++) {
-            fields.set(i, "`" + fields.get(i) + "`");
-        }
-        StringBuffer sql = new StringBuffer("select ");
-        sql.append(StringUtils.join(fields, ","));
-        sql.append(" from " + tableName);
-        return sql.toString();
+        return getDialect().forTableBuilderSelect(tableName,pojoHelper.validFieldList());
     }
 
 
@@ -607,24 +596,9 @@ public class BaseDao implements IBaseDao {
             throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  No update field ：").toString());
         }
         List<Object> paramList = new ArrayList<Object>();
-        StringBuffer sql = new StringBuffer("update " + tableName + " set ");
-
-        Iterator<String> iterator = validDatas.keySet().iterator();
-        int flag = 0;
-        while (iterator.hasNext()) {
-            String fieldName = iterator.next();
-            if (flag > 0) {
-                sql.append(", ");
-            }
-            sql.append("`" + fieldName + "` = ?");
-            paramList.add(validDatas.get(fieldName));
-            flag++;
-        }
-        if (StringUtils.isNotBlank(conn.getConnSql())) {
-            sql.append(" where " + conn.getConnSql());
-        }
-        paramList.addAll(conn.getConnParams());
-
+        Dialect dialect = getDialect();
+        StringBuffer sql = new StringBuffer();
+        dialect.forDbUpdate(tableName,validDatas,conn,sql,paramList);
         return this.executeUpdate(sql.toString(), paramList.toArray());
     }
 
@@ -801,5 +775,9 @@ public class BaseDao implements IBaseDao {
     @Override
     public JdbcTemplate getJdbcTemplate() {
         return DataSourceHolder.ds.getJdbcTemplate(this.dataSourceName);
+    }
+
+    private Dialect getDialect() {
+        return DataSourceHolder.ds.getTargetDialect(this.dataSourceName);
     }
 }

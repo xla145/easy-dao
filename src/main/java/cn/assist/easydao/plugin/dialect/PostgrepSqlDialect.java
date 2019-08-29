@@ -12,17 +12,17 @@ import java.util.stream.Collectors;
  * @author xula
  * @date 2019/08/22 10:05
  **/
-public class MysqlDialect extends Dialect {
+public class PostgrepSqlDialect extends Dialect {
 
     /**
-     * 左边`
+     * 左边双引号
      */
-    private static final  String LEFT_MARKS = "`";
+    private static final  String LEFT_MARKS = "\"";
 
     /**
-     * 右边`
+     * 左边双引号
      */
-    private static final  String RIGHT_MARKS = "`";
+    private static final  String RIGHT_MARKS = "\"";
 
 
     @Override
@@ -36,7 +36,7 @@ public class MysqlDialect extends Dialect {
     @Override
     public String forPaginate(int pageNo, int pageSize, StringBuffer sql) {
         int offset = pageSize * (pageNo - 1);
-        sql.append(" limit ").append(offset).append(", ").append(pageSize);	// limit can use one or two '?' to pass paras
+        sql.append(" limit ").append(pageSize).append(" offset ").append(offset);
         return sql.toString();
     }
 
@@ -51,21 +51,21 @@ public class MysqlDialect extends Dialect {
             if (flag > 0) {
                 sql.append(", ");
             }
-            sql.append(formatFields(fieldName) + " = ?");
+            sql.append(formatFields(fieldName) +" = ?");
             paras.add(param.get(fieldName));
             flag++;
         }
         if (StringUtils.isNotEmpty(conn.getConnSql())) {
-            sql.append(" where " + conn.getConnSql());
+            String conSql = conn.getConnSql().replace("`","\"");
+            sql.append(" where ").append(conSql);
         }
         paras.addAll(conn.getConnParams());
     }
 
     @Override
-    public void forDbSave(String tableName, Conditions conn, StringBuffer sql, List paras) {
+    public void forDbSave(String tableName, Conditions conn, StringBuffer sql, List<Object> paras) {
 
     }
-
 
     /**
      * 给字段格式化，左右加上 /"

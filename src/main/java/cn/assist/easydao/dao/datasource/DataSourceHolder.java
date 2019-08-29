@@ -5,6 +5,8 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
+import cn.assist.easydao.plugin.dialect.ActiveDb;
+import cn.assist.easydao.plugin.dialect.Dialect;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -29,10 +31,26 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 	
 	private static JdbcTemplate jdbcTemplate = new JdbcTemplate();
 
+
+	private Map<Object, Dialect> targetDialect;
+
+
 	private String currentLookupKey;
 	
 	public static DataSourceHolder ds;
-	
+
+
+	public void setTargetActiveDb(Map<Object, ActiveDb> targetActiveDb) {
+		// 创建map存数据源信息
+		Map<Object, Object> targetDataSources = new HashMap<>(targetActiveDb.size());
+		targetDialect = new HashMap<>(targetActiveDb.size());
+		targetActiveDb.entrySet().forEach(s -> {
+			targetDataSources.put(s.getKey(),s.getValue().getDataSource());
+			targetDialect.put(s.getKey(),s.getValue().getDialect());
+		});
+		super.setTargetDataSources(targetDataSources);
+	}
+
 	/**
 	 * 为了兼容历史版本
 	 * @param dataSource 数据源
@@ -98,5 +116,22 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 
 	public void setCurrentLookupKey(String currentLookupKey) {
 		this.currentLookupKey = currentLookupKey;
+	}
+
+
+	/**
+	 * 获取当前数据库的方言
+	 * @param dataSourceName
+	 * @return
+	 */
+	public Dialect getTargetDialect(String dataSourceName) {
+		if (StringUtils.isEmpty(dataSourceName)) {
+			dataSourceName = (String) determineCurrentLookupKey();
+		}
+		return targetDialect.get(dataSourceName);
+	}
+
+	public void setTargetDialect(Map<Object, Dialect> targetDialect) {
+		this.targetDialect = targetDialect;
 	}
 }

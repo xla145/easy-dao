@@ -115,12 +115,12 @@ public class PojoHelper {
     	Table table = obj.getClass().getAnnotation(Table.class);
     	if(table != null){
     		if(StringUtils.isNotBlank(table.name())){
-    			return ("`" + table.name() + "`");
+    			return (table.name() );
     		}
     	}
     	
         String simpleName = obj.getClass().getSimpleName();
-        return ("`" + inflector.underscore(simpleName) + "`");
+        return (inflector.underscore(simpleName));
         
     }
 	

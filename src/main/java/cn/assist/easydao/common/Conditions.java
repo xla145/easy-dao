@@ -1,6 +1,8 @@
 package cn.assist.easydao.common;
 
+import cn.assist.easydao.dao.datasource.DataSourceHolder;
 import cn.assist.easydao.exception.DaoException;
+import cn.assist.easydao.plugin.dialect.Dialect;
 import cn.assist.easydao.util.Inflector;
 import org.apache.commons.lang.StringUtils;
 
@@ -28,9 +30,6 @@ public class Conditions implements Serializable {
 	 */
 	private List<Object> connParams = new ArrayList<Object>();
 
-
-	private static final String POINT = ".";
-
 	public Conditions() {}
 
 	/**
@@ -48,7 +47,7 @@ public class Conditions implements Serializable {
 			throw new DaoException(new StringBuilder().append(getClass().getName()).append(" sqlExpr is null  ").append(field).toString());
 		}
 		// 参数为空值，直接返回
-		if (value.length == 1 && value[0] == null) {
+		if (value == null || (value.length == 1 && value[0] == null)) {
 			return;
 		}
 		String expr = sqlExpr.toString();
@@ -61,15 +60,7 @@ public class Conditions implements Serializable {
 
 		StringBuffer sqlBuffer = new StringBuffer();
 
-		/** 支持
-		 * 如果现在多表之间，有相同的字段名 如 a.status 返回 a.`status`
-		 */
-		if (original.contains(POINT)) {
-			String[] o = original.split("\\.");
-			sqlBuffer.append(o[0]+POINT+"`" + o[1] + "`");
-		} else {
-			sqlBuffer.append("`" + original + "`");
-		}
+        sqlBuffer.append(original);
 		switch (sqlExpr) {
 			case IS_NULL:
 				sqlBuffer.append(" " + expr + " ");

@@ -2,7 +2,9 @@ package cn.assist.easydao.plugin.dialect;
 
 import cn.assist.easydao.common.Conditions;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author xula
@@ -13,10 +15,11 @@ public abstract class Dialect {
 
     /**
      * 生成查询sql
-     * @param entity
+     * @param tableName
+     * @param fields
      * @return
      */
-    public abstract String forTableBuilderSelect(Class entity);
+    public abstract String forTableBuilderSelect(String tableName,List<String> fields);
 
     /**
      * 生成分页sql
@@ -30,13 +33,21 @@ public abstract class Dialect {
 
     /**
      * 生成插入sql
-     * @param entity
+     * @param tableName
      * @param conn
      * @param sql
      * @param paras
      */
-    public abstract void forDbSave(Class entity, Conditions conn , StringBuffer sql, List<Object> paras);
+    public abstract void forDbSave(String tableName, Conditions conn , StringBuffer sql, List<Object> paras);
 
 
-    public abstract void forDbUpdate(Class entity, Conditions conn, StringBuilder sql, List<Object> paras);
+    public abstract void forDbUpdate(String tableName, Map<String, Object> param, Conditions conn, StringBuffer sql, List<Object> paras);
+
+
+    /**
+     * 给字段格式化，左右加上 /"
+     * @return
+     */
+    public abstract String formatFields(String field);
+
 }
