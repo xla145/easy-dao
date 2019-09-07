@@ -3,7 +3,6 @@ import cn.assist.easydao.common.Conditions;
 import cn.assist.easydao.common.Sort;
 import cn.assist.easydao.pojo.BasePojo;
 import cn.assist.easydao.pojo.PagePojo;
-import cn.assist.easydao.pojo.RecordPojo;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
@@ -225,6 +224,7 @@ public interface IBaseDao{
 	 */
 	 List<Map<String, Object>> queryForListMap(String sql, Object... params);
 
+
 	/**
 	 * 根据数据库唯一索引查询
 	 *
@@ -364,57 +364,12 @@ public interface IBaseDao{
 	 */
 	 int delete(String sql, Object... params);
 
-
-
 	/**
 	 * 删除数据
 	 * @param entity
 	 * @return 受影响的行数
 	 */
 	<T extends BasePojo> int delete(T entity);
-
-	/**
-	 * 查询返回RecordPojo集
-	 * @param sql 执行的sql
-	 * @return 结果对象
-	 */
-	RecordPojo query(String sql);
-
-	/**
-	 * 查询返回RecordPojo集
-	 * @param sql 执行的sql
-	 * @param params 参数
-	 * @return 结果对象
-	 */
-	RecordPojo query(String sql,Object... params);
-
-
-	/**
-	 * 返回RecordPojo 列表数据
-	 * @param sql 执行的sql
-	 * @return 对象列表
-	 */
-	List<RecordPojo> queryList(String sql);
-
-
-	/**
-	 * 返回RecordPojo 列表数据
-	 * @param sql 执行的sql
-	 * @param params 参数
-	 * @return 对象列表
-	 */
-	List<RecordPojo> queryList(String sql,Object... params);
-
-
-	/**
-	 * 分页获取对象信息
-	 * @param sql 执行的sql
-	 * @param params 参数
-	 * @param pageNO 页码
-	 * @param pageSize 每页显示的条数
-	 * @return PagePojo<RecordPojo>
-	 */
-	PagePojo<RecordPojo> queryPage(String sql,List<Object> params,Integer pageNO,Integer pageSize);
 
 	/**
 	 *

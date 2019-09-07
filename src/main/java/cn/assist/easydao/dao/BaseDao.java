@@ -5,17 +5,13 @@ import cn.assist.easydao.common.Conditions;
 import cn.assist.easydao.common.Sort;
 import cn.assist.easydao.common.SqlExpr;
 import cn.assist.easydao.dao.datasource.DataSourceHolder;
-import cn.assist.easydao.dao.mapper.ColumnRecordRowMapper;
 import cn.assist.easydao.dao.sqlcreator.ReturnKeyCreator;
 import cn.assist.easydao.dao.sqlcreator.ReturnKeysCallback;
 import cn.assist.easydao.dao.sqlcreator.SpringResultHandler;
 import cn.assist.easydao.exception.DaoException;
 import cn.assist.easydao.plugin.dialect.Dialect;
-import cn.assist.easydao.plugin.dialect.MysqlDialect;
 import cn.assist.easydao.pojo.BasePojo;
 import cn.assist.easydao.pojo.PagePojo;
-import cn.assist.easydao.pojo.RecordPojo;
-import cn.assist.easydao.util.CommonUtil;
 import cn.assist.easydao.util.Inflector;
 import cn.assist.easydao.util.MessageFormat;
 import cn.assist.easydao.util.PojoHelper;
@@ -61,8 +57,7 @@ public class BaseDao implements IBaseDao {
         return new BaseDao(dataSourceName);
     }
 
-    BaseDao() {
-    }
+    BaseDao() {}
 
     BaseDao(String dataSourceName) {
         this.dataSourceName = dataSourceName;
@@ -194,6 +189,7 @@ public class BaseDao implements IBaseDao {
         return insertMulti(entitys, false);
     }
 
+
     @Override
     public <T extends BasePojo> int merge(T entity, String... params) {
         StringBuffer sql = new StringBuffer("insert into ");
@@ -304,6 +300,8 @@ public class BaseDao implements IBaseDao {
         }
         return queryForListMapMulti(sql, params);
     }
+
+
 
     private List<Map<String, Object>> queryForListMapMulti(String sql, Object[] params) {
         if (DataSourceHolder.dev) {
@@ -531,49 +529,13 @@ public class BaseDao implements IBaseDao {
             throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  The entitys name is not null ").toString());
         }
         T t = entitys.get(0);
-        StringBuffer sql = new StringBuffer("insert into ");
-        StringBuffer insertFields = new StringBuffer();
-
         PojoHelper pojoHelper = new PojoHelper(t);
-
-        sql.append(pojoHelper.getTableName()); //表名
-        StringBuffer insertValues = new StringBuffer();
-
-        //待插入字段<===>数据
-        Map<String, Object> validDatas =  pojoHelper.validDataList();
-
+        StringBuffer sql = new StringBuffer();
         //待插入参数
         List<Object> paramList = new ArrayList<Object>();
 
-        Iterator<String> iterator = validDatas.keySet().iterator();
-        int flag = 0;
-        while (iterator.hasNext()) {
-            String fieldName = iterator.next();
-            if (flag > 0){
-                insertFields.append(", ");
-                insertValues.append(", ");
-            }
-            insertFields.append("`" + fieldName + "`");
-            insertValues.append("?");
-            paramList.add(validDatas.get(fieldName));
-            flag++;
-        }
-        sql.append("(" + insertFields + ") ");
-        sql.append("values(" + insertValues + ") ");
+        getDialect().forDbSave(pojoHelper.getTableName(),entitys,pojoHelper.validDataList(),sql,paramList);
 
-        if(entitys.size() > 1){
-            for (int i = 1; i < entitys.size(); i++) {
-                T extra = entitys.get(i);
-                pojoHelper = new PojoHelper(extra);
-                Map<String, Object> vds =  pojoHelper.validDataList();
-                List<Object> extraParams = vds.entrySet().stream().map(Map.Entry::getValue).filter(s -> s != null).collect(Collectors.toList());
-                if(extraParams.size() != validDatas.size()){
-                    throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  list size is not consistent！").toString());
-                }
-                sql.append(",(" + insertValues + ")");
-                paramList.addAll(extraParams);
-            }
-        }
         return executeInsert(sql.toString(), paramList.toArray(), isReturnId);
     }
 
@@ -668,104 +630,6 @@ public class BaseDao implements IBaseDao {
             return -1;
         }
         return id;
-    }
-
-
-    /**
-     *
-     * @param sql sql语句
-     * @return 返回RecordPojo对象
-     */
-    @Override
-    public RecordPojo query(String sql) {
-        return query(sql,null);
-    }
-
-    /**
-     *
-     * @param sql sql语句
-     * @param params 参数
-     * @return 返回RecordPojo对象
-     */
-    @Override
-    public RecordPojo query(String sql, Object... params) {
-        if (DataSourceHolder.dev) {
-            logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
-        }
-        if (CommonUtil.isEmpty(params)) {
-            return  getJdbcTemplate().queryForObject(sql,new ColumnRecordRowMapper());
-        }
-        return getJdbcTemplate().queryForObject(sql,params,new ColumnRecordRowMapper());
-    }
-
-
-    /**
-     * 获取RecordPojo 列表
-     * @param sql sql语句
-     * @return 返回RecordPojo列表
-     */
-    @Override
-    public List<RecordPojo> queryList(String sql) {
-        return queryList(sql,null);
-    }
-
-    /**
-     * 获取RecordPojo 列表
-     * @param sql sql语句
-     * @param params 参数
-     * @return 返回RecordPojo列表
-     */
-    @Override
-    public List<RecordPojo> queryList(String sql, Object... params) {
-        if (DataSourceHolder.dev) {
-            logger.info("sql:" + MessageFormat.format(sql, "\\?", params));
-        }
-        if (CommonUtil.isEmpty(params)) {
-            return  getJdbcTemplate().query(sql,new ColumnRecordRowMapper());
-        }
-        return getJdbcTemplate().query(sql,params,new ColumnRecordRowMapper());
-    }
-
-
-    /**
-     *
-     * @param sql 执行的sql语句
-     * @param params 参数
-     * @param pageNo 页码
-     * @param pageSize 每页显示的条数
-     * @return 返回分页结果
-     */
-    @Override
-    public PagePojo<RecordPojo> queryPage(String sql,List<Object> params,Integer pageNo,Integer pageSize) {
-        Object[] paramArr = null;
-        if (params != null && params.size() > 0) {
-            paramArr = params.toArray();
-        }
-        PagePojo<RecordPojo> page = new PagePojo<RecordPojo>();
-        pageSize = pageSize < 1 ? 10 : pageSize;
-        pageNo = pageNo < 2 ? 1 : pageNo;
-        int total = queryForInt("select count(*) from (" + sql + ") as tab_temp", paramArr);
-
-        page.setPageNo(pageNo);
-        page.setPageSize(pageSize);
-        page.setTotal(total);
-        page.setPageTotal((total + pageSize - 1) / pageSize);
-
-
-        sql += " limit " + ((pageNo - 1) * pageSize) + ", " + pageSize;
-
-        if (DataSourceHolder.dev) {
-            logger.info("sql:" + MessageFormat.format(sql, "\\?", paramArr));
-        }
-        ReturnKeyCreator creator = new ReturnKeyCreator(sql);
-        List<RecordPojo> list = new ArrayList<>();
-        if (params == null || params.size() < 1) {
-            list = getJdbcTemplate().query(creator.getSql(), new ColumnRecordRowMapper());
-        } else {
-            list = getJdbcTemplate().query(creator.getSql(), paramArr,new ColumnRecordRowMapper());
-        }
-        page.setPageData(list);
-        return page;
     }
 
     /**

@@ -1,6 +1,5 @@
 package cn.assist.easydao.dao.mapper;
 
-import cn.assist.easydao.pojo.RecordPojo;
 import cn.assist.easydao.util.Inflector;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.JdbcUtils;
@@ -12,25 +11,23 @@ import java.sql.SQLException;
 import java.util.Map;
 
 /**
- * 构造返回类型 RecordPojo
+ * 构造返回类型 
  * @author xla
  */
-public class ColumnRecordRowMapper implements RowMapper<RecordPojo> {
+public class ColumnRecordRowMapper implements RowMapper<Map<String,Object>> {
 
     @Override
-    public RecordPojo mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public Map<String,Object> mapRow(ResultSet rs, int rowNum) throws SQLException {
         Inflector inflector = Inflector.getInstance();
         ResultSetMetaData rsmd = rs.getMetaData();
         int columnCount = rsmd.getColumnCount();
         Map<String, Object> mapOfColValues = createColumnMap(columnCount);
-        RecordPojo recordPojo = new RecordPojo();
         for (int i = 1; i <= columnCount; i++) {
             String key = getColumnKey(JdbcUtils.lookupColumnName(rsmd, i));
             Object obj = getColumnValue(rs, i);
             mapOfColValues.put(inflector.humpFirstLower(key), obj);
         }
-        recordPojo.setColumns(mapOfColValues);
-        return recordPojo;
+        return mapOfColValues;
     }
 
     /**

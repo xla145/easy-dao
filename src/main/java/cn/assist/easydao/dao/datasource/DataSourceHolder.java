@@ -31,14 +31,13 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 	
 	private static JdbcTemplate jdbcTemplate = new JdbcTemplate();
 
-
 	private Map<Object, Dialect> targetDialect;
-
 
 	private String currentLookupKey;
 	
 	public static DataSourceHolder ds;
 
+	public String defaultDataSourceName = "mysql";
 
 	public void setTargetActiveDb(Map<Object, ActiveDb> targetActiveDb) {
 		// 创建map存数据源信息
@@ -50,6 +49,7 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 		});
 		super.setTargetDataSources(targetDataSources);
 	}
+
 
 	/**
 	 * 为了兼容历史版本
@@ -98,7 +98,7 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 		if (StringUtils.isNotEmpty(dataSourceName)) {
 			return dataSourceName;
 		}
-		return null;
+		return defaultDataSourceName;
 	}
 	
 	public static void setDev(boolean dev) {
@@ -133,5 +133,13 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 
 	public void setTargetDialect(Map<Object, Dialect> targetDialect) {
 		this.targetDialect = targetDialect;
+	}
+
+	public String getDefaultDataSourceName() {
+		return defaultDataSourceName;
+	}
+
+	public void setDefaultDataSourceName(String defaultDataSourceName) {
+		this.defaultDataSourceName = defaultDataSourceName;
 	}
 }

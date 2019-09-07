@@ -32,15 +32,25 @@ public abstract class Dialect {
 
 
     /**
-     * 生成插入sql
+     * 生成sql语句
      * @param tableName
+     * @param entitys
+     * @param validDatas
+     * @param sql
+     * @param paramList
+     * @param <T>
+     */
+    public abstract <T> void forDbSave(String tableName,List<T> entitys, Map<String, Object> validDatas, StringBuffer sql, List<Object> paramList);
+
+
+    /**
+     * 生成sql语句
+     * @param tableName
+     * @param param
      * @param conn
      * @param sql
      * @param paras
      */
-    public abstract void forDbSave(String tableName, Conditions conn , StringBuffer sql, List<Object> paras);
-
-
     public abstract void forDbUpdate(String tableName, Map<String, Object> param, Conditions conn, StringBuffer sql, List<Object> paras);
 
 

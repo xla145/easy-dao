@@ -5,11 +5,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
@@ -36,18 +36,18 @@ public class PojoHelper {
 	 * 操作对像所有可见get方法
 	 * 
 	 */
-	private ThreadLocal<Hashtable<String, Method>> getMethodHash = new ThreadLocal<Hashtable<String,Method>>();
+	private ThreadLocal<ConcurrentHashMap<String, Method>> getMethodHash = new ThreadLocal<>();
 	
 	/**
 	 * 操作对像所有可见set方法
 	 * 
 	 */
-	private ThreadLocal<Hashtable<String, Method>> setMethodHash = new ThreadLocal<Hashtable<String,Method>>();
+	private ThreadLocal<ConcurrentHashMap<String, Method>> setMethodHash = new ThreadLocal<>();
 	
 	/**
 	 * 操作对像所有可见字段属性
 	 */
-	private ThreadLocal<Hashtable<String, Field>> fieldHash = new ThreadLocal<Hashtable<String,Field>>();
+	private ThreadLocal<ConcurrentHashMap<String, Field>> fieldHash = new ThreadLocal<>();
 	
 	/**
 	 * 转化器
@@ -275,46 +275,51 @@ public class PojoHelper {
 		}
 		return map;
     }
-	
+
+
+
 	private void initMethods(Class<?> clazz){
-		if(!clazz.getCanonicalName().equals("java.lang.Object")){
-			String rapl = "$1";
-			
-			String gs = "get(\\w+)";
-			Pattern getM = Pattern.compile(gs);
-			
-			String ss = "set(\\w+)";
-			Pattern setM = Pattern.compile(ss);
-			
-			Method[] methods = clazz.getMethods();
-			for (int i = 0; i < methods.length; ++i) {
-				Method m = methods[i];
-				String methodName = m.getName();
-				if (Pattern.matches(gs, methodName)) {
-					String param = getM.matcher(methodName).replaceAll(rapl).toLowerCase();
-					if(getMethodHash.get() == null){
-						Hashtable<String, Method> me = new Hashtable<String, Method>();
-						me.put(param, m);
-						getMethodHash.set(me);
-					}else if(!getMethodHash.get().containsKey(param)){
-						getMethodHash.get().put(param, m);
-					}
-				}
-				if (Pattern.matches(ss, methodName)) {
-					String param = setM.matcher(methodName).replaceAll(rapl).toLowerCase();
-					if(setMethodHash.get() == null){
-						Hashtable<String, Method> me = new Hashtable<String, Method>();
-						me.put(param, m);
-						setMethodHash.set(me);
-					}else if(!setMethodHash.get().containsKey(param)){
-						setMethodHash.get().put(param, m);
-					}
-				}
+		if (clazz == null) {
+			return;
+		}
+		if ("java.lang.Object".equals(clazz.getCanonicalName())) {
+			return;
+		}
+		String rapl = "$1";
+		String gs = "get(\\w+)";
+		Pattern getM = Pattern.compile(gs);
+		String ss = "set(\\w+)";
+		Pattern setM = Pattern.compile(ss);
+		Method[] methods = clazz.getMethods();
+		for (int i = 0; i < methods.length; ++i) {
+			Method m = methods[i];
+			String methodName = m.getName();
+			setMethodHash(rapl, gs, getM, m, methodName, getMethodHash);
+			setMethodHash(rapl, ss, setM, m, methodName, setMethodHash);
+		}
+		initMethods(clazz.getSuperclass());
+	}
+
+
+
+	private void setMethodHash(String rapl, String gs, Pattern getM, Method m, String methodName, ThreadLocal<ConcurrentHashMap<String, Method>> getMethodHash) {
+		if (Pattern.matches(gs, methodName)) {
+			String param = getM.matcher(methodName).replaceAll(rapl).toLowerCase();
+			if(getMethodHash.get() == null){
+				ConcurrentHashMap<String, Method> me = new ConcurrentHashMap<String, Method>();
+				me.put(param, m);
+				getMethodHash.set(me);
+			}else if(!getMethodHash.get().containsKey(param)){
+				getMethodHash.get().put(param, m);
 			}
-			initMethods(clazz.getSuperclass());
 		}
 	}
-	
+
+
+	/**
+	 * 获取 当前class的成员信息和子类的成员信息
+	 * @param clazz
+	 */
 	private void initDeclaredFields(Class<?> clazz){
 		if(!clazz.getCanonicalName().equals("java.lang.Object")){
 			Field[] fields = clazz.getDeclaredFields();
@@ -322,7 +327,7 @@ public class PojoHelper {
 				Field field = fields[i];
 				String fileName = field.getName();
 				if(fieldHash.get() == null){
-					Hashtable<String, Field> fi = new Hashtable<String, Field>();
+					ConcurrentHashMap<String, Field> fi = new ConcurrentHashMap<String, Field>();
 					fi.put(field.getName(), field);
 					fieldHash.set(fi);
 				}else if(!fieldHash.get().containsKey(fileName)){

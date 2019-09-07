@@ -1,8 +1,11 @@
 package cn.assist.easydao.plugin.dialect;
 
 import cn.assist.easydao.common.Conditions;
+import cn.assist.easydao.exception.DaoException;
+import cn.assist.easydao.util.PojoHelper;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +39,10 @@ public class MysqlDialect extends Dialect {
     @Override
     public String forPaginate(int pageNo, int pageSize, StringBuffer sql) {
         int offset = pageSize * (pageNo - 1);
-        sql.append(" limit ").append(offset).append(", ").append(pageSize);	// limit can use one or two '?' to pass paras
+        sql.append(" limit ").append(offset).append(", ").append(pageSize);
         return sql.toString();
     }
+
 
 
     @Override
@@ -61,9 +65,43 @@ public class MysqlDialect extends Dialect {
         paras.addAll(conn.getConnParams());
     }
 
-    @Override
-    public void forDbSave(String tableName, Conditions conn, StringBuffer sql, List paras) {
 
+    @Override
+    public <T> void forDbSave(String tableName,List<T> entitys, Map<String, Object> validDatas, StringBuffer sql, List<Object> paramList) {
+
+        sql.append("insert into ");
+        StringBuffer insertFields = new StringBuffer();
+        sql.append(tableName);
+        StringBuffer insertValues = new StringBuffer();
+        Iterator<String> iterator = validDatas.keySet().iterator();
+        int flag = 0;
+        while (iterator.hasNext()) {
+            String fieldName = iterator.next();
+            if (flag > 0){
+                insertFields.append(", ");
+                insertValues.append(", ");
+            }
+            insertFields.append("`" + fieldName + "`");
+            insertValues.append("?");
+            paramList.add(validDatas.get(fieldName));
+            flag++;
+        }
+        sql.append("(" + insertFields + ") ");
+        sql.append("values(" + insertValues + ") ");
+
+        if(entitys.size() > 1){
+            for (int i = 1; i < entitys.size(); i++) {
+                T extra = entitys.get(i);
+                PojoHelper pojoHelper = new PojoHelper(extra);
+                Map<String, Object> vds =  pojoHelper.validDataList();
+                List<Object> extraParams = vds.entrySet().stream().map(Map.Entry::getValue).filter(s -> s != null).collect(Collectors.toList());
+                if(extraParams.size() != validDatas.size()){
+                    throw new DaoException(new StringBuilder().append(getClass().getName()).append(" :  list size is not consistent！").toString());
+                }
+                sql.append(",(" + insertValues + ")");
+                paramList.addAll(extraParams);
+            }
+        }
     }
 
 
