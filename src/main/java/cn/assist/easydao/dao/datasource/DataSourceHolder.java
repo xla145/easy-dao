@@ -31,6 +31,8 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 	
 	private static JdbcTemplate jdbcTemplate = new JdbcTemplate();
 
+	private Map<Object, JdbcTemplate> jdbcTemplateMap = new HashMap<>();
+
 	private Map<Object, Dialect> targetDialect;
 
 	private String currentLookupKey;
@@ -46,6 +48,8 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 		targetActiveDb.entrySet().forEach(s -> {
 			targetDataSources.put(s.getKey(),s.getValue().getDataSource());
 			targetDialect.put(s.getKey(),s.getValue().getDialect());
+			// 不同的数据源使用不同的JdbcTemplate对象
+			jdbcTemplateMap.put(s.getKey(),new JdbcTemplate());
 		});
 		super.setTargetDataSources(targetDataSources);
 	}
@@ -71,6 +75,10 @@ public class DataSourceHolder extends AbstractRoutingDataSource implements Appli
 	public JdbcTemplate getJdbcTemplate(String lookupKey) {
 		setCurrentLookupKey(lookupKey);
 		DataSource dataSource = determineTargetDataSource();
+		JdbcTemplate jdbcTemplate = jdbcTemplateMap.get(defaultDataSourceName);
+		if (jdbcTemplateMap.get(lookupKey) != null) {
+			jdbcTemplate = jdbcTemplateMap.get(lookupKey);
+		}
 		jdbcTemplate.setDataSource(dataSource);
 		return jdbcTemplate;
 	}

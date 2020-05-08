@@ -18,10 +18,39 @@
       通过使用 BaseDao.use（数据源的名称）切换
 
 #### 项目使用
+
+* 使用`maven`引入依赖
+
+  ```
+  <dependency>
+      <groupId>cn.assist</groupId>
+      <artifactId>easy-dao</artifactId>
+      <version>2.0.0</version>
+  </dependency>
+  ```
+
+  pom.xml 文件中加入`repository`
+
+  ```
+  <repositories>
+      <repository>
+      <id>rdc-releases</id>
+      <url>https://repo.rdc.aliyun.com/repository/120621-release-HldziT/</url>
+      <name>rdc-releases</name>
+      </repository>
+  </repositories>
+  ```
+
+* jar 方式引入
+
+  下载 [`easy-dao.jar`](https://github.com/xla145/easy-dao/dist/easy-dao-2.0.0.jar)，将jar包引入到项目中
+
+  ![](https://img.mupaie.com/20200508165957.png)
+
  在springBoot环境下使用easy-dao项目
- 
+
  首先需要创建数据源，例子中我们创建了beanName为dataSourceOne 数据源    
-  ****
+****
     /**
      * 使用 easy-dao
      * @return
